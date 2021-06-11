@@ -1,4 +1,4 @@
-module netw-device-driver/ndd-runtime
+module github.com/netw-device-driver/ndd-runtime
 
 go 1.16
 
