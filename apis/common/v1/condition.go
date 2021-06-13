@@ -125,7 +125,6 @@ func (s *ConditionedStatus) GetCondition(ck ConditionKind) Condition {
 			return c
 		}
 	}
-
 	return Condition{Kind: ck, Status: corev1.ConditionUnknown}
 }
 

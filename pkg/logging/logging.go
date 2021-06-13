@@ -50,7 +50,7 @@ func (l nopLogger) WithValues(keysAndValues ...interface{}) Logger { return nopL
 
 // NewLogrLogger returns a Logger that is satisfied by the supplied logr.Logger,
 // which may be satisfied in turn by various logging implementations (Zap, klog,
-// etc). Debug messages are logged at V(1).
+// etc).
 func NewLogrLogger(l logr.Logger) Logger {
 	return logrLogger{log: l}
 }
