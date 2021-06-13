@@ -69,7 +69,7 @@ func (a *APIPatchingApplicator) Apply(ctx context.Context, o client.Object, ao .
 		}
 	}
 
-	// TODO(negz): Allow callers to override the kind of patch used.
+	// TODO: &patch{o} was &patch{desired}
 	return errors.Wrap(a.client.Patch(ctx, o, &patch{o}), "cannot patch object")
 }
 
