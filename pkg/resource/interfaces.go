@@ -36,7 +36,7 @@ type Object interface {
 	runtime.Object
 }
 
-// A ProviderConfig configures a Crossplane provider.
+// A ProviderConfig configures a Network Device Driver provider.
 type ProviderConfig interface {
 	Object
 
