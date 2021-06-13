@@ -23,7 +23,6 @@ import (
 	"github.com/pkg/errors"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -71,10 +70,10 @@ func (a *APIPatchingApplicator) Apply(ctx context.Context, o client.Object, ao .
 	}
 
 	// TODO(negz): Allow callers to override the kind of patch used.
-	return errors.Wrap(a.client.Patch(ctx, o, &patch{desired}), "cannot patch object")
+	return errors.Wrap(a.client.Patch(ctx, o, &patch{o}), "cannot patch object")
 }
 
-type patch struct{ from runtime.Object }
+type patch struct{ from client.Object }
 
-func (p *patch) Type() types.PatchType                 { return types.MergePatchType }
-func (p *patch) Data(_ runtime.Object) ([]byte, error) { return json.Marshal(p.from) }
+func (p *patch) Type() types.PatchType                { return types.MergePatchType }
+func (p *patch) Data(_ client.Object) ([]byte, error) { return json.Marshal(p.from) }
