@@ -70,7 +70,7 @@ func (a *APIPatchingApplicator) Apply(ctx context.Context, o client.Object, ao .
 	}
 
 	// TODO: &patch{o} was &patch{desired}
-	return errors.Wrap(a.client.Patch(ctx, o, &patch{o}), "cannot patch object")
+	return errors.Wrap(a.client.Patch(ctx, o, &patch{desired.(client.Object)}), "cannot patch object")
 }
 
 type patch struct{ from client.Object }
