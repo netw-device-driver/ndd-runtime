@@ -19,7 +19,10 @@ package resource
 import (
 	"context"
 
+	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -52,6 +55,32 @@ type ApplyOption func(ctx context.Context, current, desired runtime.Object) erro
 func UpdateFn(fn func(current, desired runtime.Object)) ApplyOption {
 	return func(_ context.Context, c, d runtime.Object) error {
 		fn(c, d)
+		return nil
+	}
+}
+
+type errNotControllable struct{ error }
+
+func (e errNotControllable) NotControllable() bool {
+	return true
+}
+
+// MustBeControllableBy requires that the current object is controllable by an
+// object with the supplied UID. An object is controllable if its controller
+// reference matches the supplied UID, or it has no controller reference. An
+// error that satisfies IsNotControllable will be returned if the current object
+// cannot be controlled by the supplied UID.
+func MustBeControllableBy(u types.UID) ApplyOption {
+	return func(_ context.Context, current, _ runtime.Object) error {
+		c := metav1.GetControllerOf(current.(metav1.Object))
+		if c == nil {
+			return nil
+		}
+
+		if c.UID != u {
+			return errNotControllable{errors.Errorf("existing object is not controlled by UID %q", u)}
+
+		}
 		return nil
 	}
 }
