@@ -58,3 +58,27 @@ func NewPackageLinter(pre []PackageLinterFn, perMeta, perObject []ObjectLinterFn
 		perObject: perObject,
 	}
 }
+
+// Lint executes all linter functions against a package.
+func (l *PackageLinter) Lint(pkg *Package) error {
+	for _, fn := range l.pre {
+		if err := fn(pkg); err != nil {
+			return err
+		}
+	}
+	for _, o := range pkg.GetMeta() {
+		for _, fn := range l.perMeta {
+			if err := fn(o); err != nil {
+				return err
+			}
+		}
+	}
+	for _, o := range pkg.GetObjects() {
+		for _, fn := range l.perObject {
+			if err := fn(o); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
