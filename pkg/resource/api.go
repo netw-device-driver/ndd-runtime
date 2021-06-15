@@ -100,6 +100,11 @@ type APIFinalizer struct {
 	finalizer string
 }
 
+// NewAPIFinalizer returns a new APIFinalizer.
+func NewAPIFinalizer(c client.Client, finalizer string) *APIFinalizer {
+	return &APIFinalizer{client: c, finalizer: finalizer}
+}
+
 // AddFinalizer to the supplied Managed resource.
 func (a *APIFinalizer) AddFinalizer(ctx context.Context, obj Object) error {
 	if meta.FinalizerExists(obj, a.finalizer) {
