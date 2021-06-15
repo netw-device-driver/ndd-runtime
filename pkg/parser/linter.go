@@ -16,7 +16,16 @@ limitations under the License.
 
 package parser
 
-import "k8s.io/apimachinery/pkg/runtime"
+import (
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+)
+
+const (
+	errNilLinterFn = "linter function is nil"
+
+	errOrFmt = "object did not pass either check: (%v), (%v)"
+)
 
 // A Linter lints packages.
 type Linter interface {
@@ -81,4 +90,20 @@ func (l *PackageLinter) Lint(pkg *Package) error {
 		}
 	}
 	return nil
+}
+
+// Or checks that at least one of the passed linter functions does not return an
+// error.
+func Or(a, b ObjectLinterFn) ObjectLinterFn {
+	return func(o runtime.Object) error {
+		if a == nil || b == nil {
+			return errors.New(errNilLinterFn)
+		}
+		aErr := a(o)
+		bErr := b(o)
+		if aErr == nil || bErr == nil {
+			return nil
+		}
+		return errors.Errorf(errOrFmt, aErr, bErr)
+	}
 }
