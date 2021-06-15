@@ -16,7 +16,24 @@ limitations under the License.
 
 package parser
 
-import "k8s.io/apimachinery/pkg/runtime"
+import (
+	"bufio"
+	"context"
+	"fmt"
+	"io"
+
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer/json"
+	"k8s.io/apimachinery/pkg/util/yaml"
+)
+
+// AnnotatedReadCloser is a wrapper around io.ReadCloser that allows
+// implementations to supply additional information about data that is read.
+type AnnotatedReadCloser interface {
+	io.ReadCloser
+	Annotate() interface{}
+}
 
 // ObjectCreaterTyper know how to create and determine the type of objects.
 type ObjectCreaterTyper interface {
@@ -28,6 +45,21 @@ type ObjectCreaterTyper interface {
 type Package struct {
 	meta    []runtime.Object
 	objects []runtime.Object
+}
+
+// NewPackage creates a new Package.
+func NewPackage() *Package {
+	return &Package{}
+}
+
+// GetMeta gets metadata from the package.
+func (p *Package) GetMeta() []runtime.Object {
+	return p.meta
+}
+
+// GetObjects gets objects from the package.
+func (p *Package) GetObjects() []runtime.Object {
+	return p.objects
 }
 
 // PackageParser is a Parser implementation for parsing packages.
@@ -43,3 +75,59 @@ func New(meta, obj ObjectCreaterTyper) *PackageParser {
 		objScheme:  obj,
 	}
 }
+
+// Parser is a package parser.
+type Parser interface {
+	Parse(context.Context, io.ReadCloser) (*Package, error)
+}
+
+// Parse is the underlying logic for parsing packages. It first attempts to
+// decode objects recognized by the meta scheme, then attempts to decode objects
+// recognized by the object scheme. Objects not recognized by either scheme
+// return an error rather than being skipped.
+func (p *PackageParser) Parse(ctx context.Context, reader io.ReadCloser) (*Package, error) { //nolint:gocyclo
+	pkg := NewPackage()
+	if reader == nil {
+		return pkg, nil
+	}
+	defer func() { _ = reader.Close() }()
+	yr := yaml.NewYAMLReader(bufio.NewReader(reader))
+	dm := json.NewSerializerWithOptions(json.DefaultMetaFactory, p.metaScheme, p.metaScheme, json.SerializerOptions{Yaml: true})
+	do := json.NewSerializerWithOptions(json.DefaultMetaFactory, p.objScheme, p.objScheme, json.SerializerOptions{Yaml: true})
+	for {
+		bytes, err := yr.Read()
+		if err != nil && err != io.EOF {
+			return pkg, err
+		}
+		if err == io.EOF {
+			break
+		}
+		if len(bytes) == 0 {
+			continue
+		}
+		m, _, err := dm.Decode(bytes, nil, nil)
+		if err != nil {
+			o, _, err := do.Decode(bytes, nil, nil)
+			if err != nil {
+				if anno, ok := reader.(AnnotatedReadCloser); ok {
+					return pkg, errors.Wrap(err, fmt.Sprintf("%+v", anno.Annotate()))
+				}
+				return pkg, err
+			}
+			pkg.objects = append(pkg.objects, o)
+			continue
+		}
+		pkg.meta = append(pkg.meta, m)
+	}
+	return pkg, nil
+}
+
+// BackendOption modifies the parser backend. Backends may accept options at
+// creation time, but must accept them at initialization.
+type BackendOption func(Backend)
+
+// Backend provides a source for a parser.
+type Backend interface {
+	Init(context.Context, ...BackendOption) (io.ReadCloser, error)
+}
+
