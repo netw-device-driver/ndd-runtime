@@ -17,6 +17,8 @@ limitations under the License.
 package resource
 
 import (
+	"context"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -41,4 +43,10 @@ type ProviderConfig interface {
 	Object
 
 	Conditioned
+}
+
+// A Finalizer manages the finalizers on the resource.
+type Finalizer interface {
+	AddFinalizer(ctx context.Context, obj Object) error
+	RemoveFinalizer(ctx context.Context, obj Object) error
 }
