@@ -18,12 +18,29 @@ package parser
 
 import "k8s.io/apimachinery/pkg/runtime"
 
+// A Linter lints packages.
+type Linter interface {
+	Lint(*Package) error
+}
+
 // PackageLinterFn lints an entire package. If function applies a check for
 // multiple objects, consider using an ObjectLinterFn.
 type PackageLinterFn func(*Package) error
 
+// PackageLinterFns is a convenience function to pass multiple PackageLinterFn
+// to a function that cannot accept variadic arguments.
+func PackageLinterFns(fns ...PackageLinterFn) []PackageLinterFn {
+	return fns
+}
+
 // ObjectLinterFn lints an object in a package.
 type ObjectLinterFn func(runtime.Object) error
+
+// ObjectLinterFns is a convenience function to pass multiple ObjectLinterFn to
+// a function that cannot accept variadic arguments.
+func ObjectLinterFns(fns ...ObjectLinterFn) []ObjectLinterFn {
+	return fns
+}
 
 // PackageLinter lints packages by applying package and object linter functions
 // to it.
