@@ -26,6 +26,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/netw-device-driver/ndd-runtime/pkg/meta"
+)
+
+// Error strings.
+const (
+	errUpdateObject = "cannot update object"
 )
 
 // An APIPatchingApplicator applies changes to an object by either creating or
@@ -49,7 +56,7 @@ func (a *APIPatchingApplicator) Apply(ctx context.Context, o client.Object, ao .
 	if o.GetNamespace() == "" {
 		o.SetNamespace("default")
 	}
-	
+
 	m, ok := o.(metav1.Object)
 	if !ok {
 		return errors.New("cannot access object metadata")
@@ -86,3 +93,27 @@ type patch struct{ from client.Object }
 
 func (p *patch) Type() types.PatchType                { return types.MergePatchType }
 func (p *patch) Data(_ client.Object) ([]byte, error) { return json.Marshal(p.from) }
+
+// An APIFinalizer adds and removes finalizers to and from a resource.
+type APIFinalizer struct {
+	client    client.Client
+	finalizer string
+}
+
+// AddFinalizer to the supplied Managed resource.
+func (a *APIFinalizer) AddFinalizer(ctx context.Context, obj Object) error {
+	if meta.FinalizerExists(obj, a.finalizer) {
+		return nil
+	}
+	meta.AddFinalizer(obj, a.finalizer)
+	return errors.Wrap(a.client.Update(ctx, obj), errUpdateObject)
+}
+
+// RemoveFinalizer from the supplied Managed resource.
+func (a *APIFinalizer) RemoveFinalizer(ctx context.Context, obj Object) error {
+	if !meta.FinalizerExists(obj, a.finalizer) {
+		return nil
+	}
+	meta.RemoveFinalizer(obj, a.finalizer)
+	return errors.Wrap(IgnoreNotFound(a.client.Update(ctx, obj)), errUpdateObject)
+}
