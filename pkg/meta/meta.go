@@ -17,8 +17,10 @@ limitations under the License.
 package meta
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 
 	nddv1 "github.com/netw-device-driver/ndd-runtime/apis/common/v1"
 	"github.com/pkg/errors"
@@ -53,6 +55,26 @@ func AsController(r *nddv1.TypedReference) metav1.OwnerReference {
 	ref := AsOwner(r)
 	ref.Controller = &c
 	return ref
+}
+
+// HaveSameController returns true if both supplied objects are controlled by
+// the same object.
+func HaveSameController(a, b metav1.Object) bool {
+	ac := metav1.GetControllerOf(a)
+	bc := metav1.GetControllerOf(b)
+
+	// We do not consider two objects without any controller to have
+	// the same controller.
+	if ac == nil || bc == nil {
+		return false
+	}
+
+	return ac.UID == bc.UID
+}
+
+// NamespacedNameOf returns the referenced object's namespaced name.
+func NamespacedNameOf(r *corev1.ObjectReference) types.NamespacedName {
+	return types.NamespacedName{Namespace: r.Namespace, Name: r.Name}
 }
 
 // AddOwnerReference to the supplied object' metadata. Any existing owner with
@@ -112,4 +134,67 @@ func FinalizerExists(o metav1.Object, finalizer string) bool {
 		}
 	}
 	return false
+}
+
+// AddLabels to the supplied object.
+func AddLabels(o metav1.Object, labels map[string]string) {
+	l := o.GetLabels()
+	if l == nil {
+		o.SetLabels(labels)
+		return
+	}
+	for k, v := range labels {
+		l[k] = v
+	}
+	o.SetLabels(l)
+}
+
+// RemoveLabels with the supplied keys from the supplied object.
+func RemoveLabels(o metav1.Object, labels ...string) {
+	l := o.GetLabels()
+	if l == nil {
+		return
+	}
+	for _, k := range labels {
+		delete(l, k)
+	}
+	o.SetLabels(l)
+}
+
+// AddAnnotations to the supplied object.
+func AddAnnotations(o metav1.Object, annotations map[string]string) {
+	a := o.GetAnnotations()
+	if a == nil {
+		o.SetAnnotations(annotations)
+		return
+	}
+	for k, v := range annotations {
+		a[k] = v
+	}
+	o.SetAnnotations(a)
+}
+
+// RemoveAnnotations with the supplied keys from the supplied object.
+func RemoveAnnotations(o metav1.Object, annotations ...string) {
+	a := o.GetAnnotations()
+	if a == nil {
+		return
+	}
+	for _, k := range annotations {
+		delete(a, k)
+	}
+	o.SetAnnotations(a)
+}
+
+// WasDeleted returns true if the supplied object was deleted from the API server.
+func WasDeleted(o metav1.Object) bool {
+	return !o.GetDeletionTimestamp().IsZero()
+}
+
+// WasCreated returns true if the supplied object was created in the API server.
+func WasCreated(o metav1.Object) bool {
+	// This looks a little different from WasDeleted because DeletionTimestamp
+	// returns a reference while CreationTimestamp returns a value.
+	t := o.GetCreationTimestamp()
+	return !t.IsZero()
 }
