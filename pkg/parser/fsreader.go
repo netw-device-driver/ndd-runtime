@@ -19,6 +19,7 @@ package parser
 import (
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/afero"
 )
@@ -46,6 +47,40 @@ type FsReadCloser struct {
 // Returning true indicates the file should be skipped. Returning an error will
 // cause the FsReadCloser to stop walking the filesystem and return.
 type FilterFn func(path string, info os.FileInfo) (bool, error)
+
+// SkipPath skips files at a certain path.
+func SkipPath(pattern string) FilterFn {
+	return func(path string, info os.FileInfo) (bool, error) {
+		return filepath.Match(pattern, path)
+	}
+}
+
+// SkipDirs skips directories.
+func SkipDirs() FilterFn {
+	return func(path string, info os.FileInfo) (bool, error) {
+		if info.IsDir() {
+			return true, nil
+		}
+		return false, nil
+	}
+}
+
+// SkipEmpty skips empty files.
+func SkipEmpty() FilterFn {
+	return func(path string, info os.FileInfo) (bool, error) {
+		return info.Size() == 0, nil
+	}
+}
+
+// SkipNotYAML skips files that do not have YAML extension.
+func SkipNotYAML() FilterFn {
+	return func(path string, info os.FileInfo) (bool, error) {
+		if filepath.Ext(path) != ".yaml" && filepath.Ext(path) != ".yml" {
+			return true, nil
+		}
+		return false, nil
+	}
+}
 
 // NewFsReadCloser returns an FsReadCloser that implements io.ReadCloser. It
 // walks the filesystem ahead of time, then reads file contents when Read is
