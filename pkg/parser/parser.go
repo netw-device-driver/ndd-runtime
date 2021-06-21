@@ -23,6 +23,7 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/afero"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -131,3 +132,63 @@ type Backend interface {
 	Init(context.Context, ...BackendOption) (io.ReadCloser, error)
 }
 
+// NopBackend is a parser backend with empty source.
+type NopBackend struct{}
+
+// NewNopBackend returns a new NopBackend.
+func NewNopBackend(...BackendOption) *NopBackend {
+	return &NopBackend{}
+}
+
+// Init initializes a NopBackend.
+func (p *NopBackend) Init(ctx context.Context, bo ...BackendOption) (io.ReadCloser, error) {
+	return nil, nil
+}
+
+// FsBackend is a parser backend that uses a filestystem as source.
+type FsBackend struct {
+	fs    afero.Fs
+	dir   string
+	skips []FilterFn
+}
+
+// NewFsBackend returns an FsBackend.
+func NewFsBackend(fs afero.Fs, bo ...BackendOption) *FsBackend {
+	f := &FsBackend{
+		fs: fs,
+	}
+	for _, o := range bo {
+		o(f)
+	}
+	return f
+}
+
+// Init initializes an FsBackend.
+func (p *FsBackend) Init(ctx context.Context, bo ...BackendOption) (io.ReadCloser, error) {
+	for _, o := range bo {
+		o(p)
+	}
+	return NewFsReadCloser(p.fs, p.dir, p.skips...)
+}
+
+// FsDir sets the directory of an FsBackend.
+func FsDir(dir string) BackendOption {
+	return func(p Backend) {
+		f, ok := p.(*FsBackend)
+		if !ok {
+			return
+		}
+		f.dir = dir
+	}
+}
+
+// FsFilters adds FilterFns to an FsBackend.
+func FsFilters(skips ...FilterFn) BackendOption {
+	return func(p Backend) {
+		f, ok := p.(*FsBackend)
+		if !ok {
+			return
+		}
+		f.skips = skips
+	}
+}
