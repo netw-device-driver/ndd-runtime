@@ -35,6 +35,53 @@ const (
 	errUpdateObject = "cannot update object"
 )
 
+// An APIUpdatingApplicator applies changes to an object by either creating or
+// updating it in a Kubernetes API server.
+type APIUpdatingApplicator struct {
+	client client.Client
+}
+
+// NewAPIUpdatingApplicator returns an Applicator that applies changes to an
+// object by either creating or updating it in a Kubernetes API server.
+func NewAPIUpdatingApplicator(c client.Client) *APIUpdatingApplicator {
+	return &APIUpdatingApplicator{client: c}
+}
+
+// Apply changes to the supplied object. The object will be created if it does
+// not exist, or updated if it does.
+func (a *APIUpdatingApplicator) Apply(ctx context.Context, o client.Object, ao ...ApplyOption) error {
+	m, ok := o.(Object)
+	if !ok {
+		return errors.New("cannot access object metadata")
+	}
+
+	if m.GetName() == "" && m.GetGenerateName() != "" {
+		return errors.Wrap(a.client.Create(ctx, o), "cannot create object")
+	}
+
+	current := o.DeepCopyObject().(client.Object)
+
+	err := a.client.Get(ctx, types.NamespacedName{Name: m.GetName(), Namespace: m.GetNamespace()}, current)
+	if kerrors.IsNotFound(err) {
+		// TODO(negz): Apply ApplyOptions here too?
+		return errors.Wrap(a.client.Create(ctx, m), "cannot create object")
+	}
+	if err != nil {
+		return errors.Wrap(err, "cannot get object")
+	}
+
+	for _, fn := range ao {
+		if err := fn(ctx, current, m); err != nil {
+			return err
+		}
+	}
+
+	// NOTE(hasheddan): we must set the resource version of the desired object
+	// to that of the current or the update will always fail.
+	m.SetResourceVersion(current.(metav1.Object).GetResourceVersion())
+	return errors.Wrap(a.client.Update(ctx, m), "cannot update object")
+}
+
 // An APIPatchingApplicator applies changes to an object by either creating or
 // patching it in a Kubernetes API server.
 type APIPatchingApplicator struct {
