@@ -84,3 +84,31 @@ func MustBeControllableBy(u types.UID) ApplyOption {
 		return nil
 	}
 }
+
+type errNotAllowed struct{ error }
+
+func (e errNotAllowed) NotAllowed() bool {
+	return true
+}
+
+// IsNotAllowed returns true if the supplied error indicates that an operation
+// was not allowed.
+func IsNotAllowed(err error) bool {
+	_, ok := err.(interface {
+		NotAllowed() bool
+	})
+	return ok
+}
+
+// AllowUpdateIf will only update the current object if the supplied fn returns
+// true. An error that satisfies IsNotAllowed will be returned if the supplied
+// function returns false. Creation of a desired object that does not currently
+// exist is always allowed.
+func AllowUpdateIf(fn func(current, desired runtime.Object) bool) ApplyOption {
+	return func(_ context.Context, current, desired runtime.Object) error {
+		if fn(current, desired) {
+			return nil
+		}
+		return errNotAllowed{errors.New("update not allowed")}
+	}
+}
