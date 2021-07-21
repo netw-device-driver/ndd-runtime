@@ -19,7 +19,6 @@ package resource
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/pkg/errors"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -98,8 +97,6 @@ func NewAPIPatchingApplicator(c client.Client) *APIPatchingApplicator {
 // not exist, or patched if it does. If the object does exist, it will only be
 // patched if the passed object has the same or an empty resource version.
 func (a *APIPatchingApplicator) Apply(ctx context.Context, o client.Object, ao ...ApplyOption) error {
-	fmt.Printf("APIPatchingApplicator: %v\n", o)
-
 	if o.GetNamespace() == "" {
 		o.SetNamespace("default")
 	}
@@ -108,8 +105,6 @@ func (a *APIPatchingApplicator) Apply(ctx context.Context, o client.Object, ao .
 	if !ok {
 		return errors.New("cannot access object metadata")
 	}
-
-	fmt.Printf("APIPatchingApplicator: %v\n", o)
 
 	if m.GetName() == "" && m.GetGenerateName() != "" {
 		return errors.Wrap(a.client.Create(ctx, o), "cannot create object")
