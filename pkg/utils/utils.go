@@ -21,11 +21,11 @@ func BoolPtr(b bool) *bool { return &b }
 // StringPtr return pointer to boolean
 func StringPtr(s string) *string { return &s }
 
-// intPtr return pointer to int
-func intPtr(i int) *int { return &i }
+// IntPtr return pointer to int
+func IntPtr(i int) *int { return &i }
 
-// int32Ptr return pointer to int32
-func int32Ptr(i int32) *int32 { return &i }
+// Int32Ptr return pointer to int32
+func Int32Ptr(i int32) *int32 { return &i }
 
 // Uint32Ptr return pointer to uint32
 func Uint32Ptr(ui uint32) *uint32 { return &ui }
