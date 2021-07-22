@@ -17,8 +17,12 @@ limitations under the License.
 package v1
 
 const (
+	// labels
 	TargetLabelKey      = "target"
 	TargetLabelValueAll = "all"
+
+	// errors
+	errTargetNotFound = "cannot find a valid target"
 )
 
 type Target struct {
