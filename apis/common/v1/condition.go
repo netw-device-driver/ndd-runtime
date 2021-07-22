@@ -29,15 +29,15 @@ type ConditionKind string
 // Condition Kinds.
 const (
 	// handled per resource
-	ConditionKindInternalLeafRef ConditionKind = "InternalLeafrefValidation"
+	ConditionKindInternalLeafRef ConditionKind = "InternalLeafrefValidationSuccess"
 	// handled per target per resource
-	ConditionKindExternalLeafRef ConditionKind = "ExternalLeafrefValidation"
+	ConditionKindExternalLeafRef ConditionKind = "ExternalLeafrefValidationSuccess"
 	// handled per resource
-	ConditionKindParent ConditionKind = "ParentValidation"
+	ConditionKindParent ConditionKind = "ParentValidationSuccess"
 	// handled per resource
 	ConditionKindTarget ConditionKind = "TargetFound"
 	// handled per target per resource
-	ConditionKindConfiguration ConditionKind = "ConfigurationStatus"
+	ConditionKindConfiguration ConditionKind = "ConfigurationSuccess"
 )
 
 // A ConditionReason represents the reason a resource is in a condition.
@@ -51,8 +51,8 @@ const (
 
 // Reasons a resource target is or is not ok
 const (
-	ConditionReasonFound    ConditionReason = "Found"
-	ConditionReasonNotFound ConditionReason = "Not Found"
+	ConditionReasonFound    ConditionReason = "Target Found"
+	ConditionReasonNotFound ConditionReason = "No valid target Found"
 )
 
 // Reasons a resource is or is not ready wrt configuration
