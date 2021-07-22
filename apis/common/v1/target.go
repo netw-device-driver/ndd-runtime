@@ -23,6 +23,9 @@ const (
 
 	// errors
 	ErrTargetNotFound = "cannot find a valid target"
+
+	// info
+	InfoTargetDeleted = "target got deleted"
 )
 
 type Target struct {
