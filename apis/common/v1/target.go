@@ -17,6 +17,6 @@ limitations under the License.
 package v1
 
 const (
-	targetLabelKey      = "target"
-	targetLabelValueAll = "all"
+	TargetLabelKey      = "target"
+	TargetLabelValueAll = "all"
 )
