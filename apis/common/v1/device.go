@@ -20,4 +20,6 @@ type DeviceKind string
 
 const (
 	DeviceKindUnknown DeviceKind = ""
+	DeviceKindSRL     DeviceKind = "nokia-srl"
+	DeviceKindSROS    DeviceKind = "nokia-sros"
 )
