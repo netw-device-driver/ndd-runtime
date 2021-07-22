@@ -22,7 +22,7 @@ const (
 	TargetLabelValueAll = "all"
 
 	// errors
-	errTargetNotFound = "cannot find a valid target"
+	ErrTargetNotFound = "cannot find a valid target"
 )
 
 type Target struct {
