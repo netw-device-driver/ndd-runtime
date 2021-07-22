@@ -16,10 +16,12 @@ limitations under the License.
 
 package v1
 
-type DeviceKind string
+type DeviceType string
 
 const (
-	DeviceKindUnknown DeviceKind = ""
-	DeviceKindSRL     DeviceKind = "nokia-srl"
-	DeviceKindSROS    DeviceKind = "nokia-sros"
+	DeviceTypeUnknown DeviceType = ""
+	DeviceTypeSRL     DeviceType = "nokia-srl"
+	DeviceTypeSROS    DeviceType = "nokia-sros"
 )
+
+func DeviceTypePtr(c DeviceType) *DeviceType { return &c }
