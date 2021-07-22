@@ -26,6 +26,6 @@ const (
 )
 
 type Target struct {
-	TargetName string
-	TargetDNS  string
+	Name string
+	DNS  string
 }
