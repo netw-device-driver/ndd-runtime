@@ -20,3 +20,8 @@ const (
 	TargetLabelKey      = "target"
 	TargetLabelValueAll = "all"
 )
+
+type Target struct {
+	TargetName string
+	TargetDNS  string
+}
