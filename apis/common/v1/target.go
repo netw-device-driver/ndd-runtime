@@ -26,6 +26,7 @@ const (
 
 	// info
 	InfoTargetDeleted = "target got deleted"
+	InfoTargetFound = "target(s) found"
 )
 
 type Target struct {
