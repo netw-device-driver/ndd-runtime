@@ -29,14 +29,14 @@ import (
 // indicate the status of both a resource and its reconciliation process.
 type Conditioned interface {
 	SetConditions(c ...nddv1.Condition)
-	GetCondition(nddv1.ConditionKind) nddv1.Condition
+	GetCondition(ck nddv1.ConditionKind) nddv1.Condition
 }
 
 // A TargetConditioned may have conditions set or retrieved. TargetConditioned are typically
 // indicate the status of both a resource and its reconciliation process.
 type TargetConditioned interface {
 	SetTargetConditions(target string, c ...nddv1.Condition)
-	GetTargetCondition(target string, kind nddv1.ConditionKind) nddv1.Condition
+	GetTargetCondition(target string, ck nddv1.ConditionKind) nddv1.Condition
 }
 
 // An Object is a Kubernetes object.

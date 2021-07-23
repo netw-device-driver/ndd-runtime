@@ -27,5 +27,8 @@ func IntPtr(i int) *int { return &i }
 // Int32Ptr return pointer to int32
 func Int32Ptr(i int32) *int32 { return &i }
 
+// Int64Ptr return pointer to int64
+func Int64Ptr(i int64) *int64 { return &i }
+
 // Uint32Ptr return pointer to uint32
 func Uint32Ptr(ui uint32) *uint32 { return &ui }
