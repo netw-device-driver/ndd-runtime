@@ -22,6 +22,7 @@ const (
 	TargetLabelValueAll = "all"
 
 	// errors
+	ErrFindingTargets = "cannot find targets"
 	ErrTargetNotFound = "cannot find a valid target"
 
 	// info
