@@ -21,6 +21,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	nddv1 "github.com/netw-device-driver/ndd-runtime/apis/common/v1"
 )
@@ -37,6 +38,18 @@ type Conditioned interface {
 type TargetConditioned interface {
 	SetTargetConditions(target string, c ...nddv1.Condition)
 	GetTargetCondition(target string, ck nddv1.ConditionKind) nddv1.Condition
+}
+
+// A ProviderConfigReferencer may reference a provider config resource.
+type ProviderConfigReferencer interface {
+	GetProviderConfigReference() *nddv1.Reference
+	SetProviderConfigReference(p *nddv1.Reference)
+}
+
+// An Orphanable resource may specify a DeletionPolicy.
+type Orphanable interface {
+	SetDeletionPolicy(p nddv1.DeletionPolicy)
+	GetDeletionPolicy() nddv1.DeletionPolicy
 }
 
 // An Object is a Kubernetes object.
@@ -56,4 +69,23 @@ type ProviderConfig interface {
 type Finalizer interface {
 	AddFinalizer(ctx context.Context, obj Object) error
 	RemoveFinalizer(ctx context.Context, obj Object) error
+}
+
+// A Managed is a Kubernetes object representing a concrete managed
+// resource (e.g. a CloudSQL instance).
+type Managed interface {
+	Object
+
+	ProviderConfigReferencer
+	Orphanable
+
+	Conditioned
+}
+
+// A ManagedList is a list of managed resources.
+type ManagedList interface {
+	client.ObjectList
+
+	// GetItems returns the list of managed resources.
+	GetItems() []Managed
 }
