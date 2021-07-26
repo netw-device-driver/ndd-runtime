@@ -88,6 +88,16 @@ type ResourceSpec struct {
 	DeletionPolicy DeletionPolicy `json:"deletionPolicy,omitempty"`
 }
 
+// ResourceStatus represents the observed state of a managed resource.
+type ResourceStatus struct {
+	ConditionedStatus `json:",inline"`
+	TargetConditions        map[string]*TargetConditions `json:"targetConditions,omitempty"`
+}
+
+type TargetConditions struct {
+	ConditionedStatus `json:",inline"`
+}
+
 // A ProviderConfigStatus defines the observed status of a ProviderConfig.
 type ProviderConfigStatus struct {
 	ConditionedStatus `json:",inline"`
