@@ -16,7 +16,14 @@ limitations under the License.
 
 package v1
 
-import "k8s.io/apimachinery/pkg/types"
+import (
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
+)
+
+// LabelKeyProviderName is added to ProviderConfigUsages to relate them to their
+// ProviderConfig.
+const LabelKeyProviderName = "ndd.henderiw.be/provider-config"
 
 // A Reference to a named object.
 type Reference struct {
@@ -40,4 +47,61 @@ type TypedReference struct {
 	// UID of the referenced object.
 	// +optional
 	UID types.UID `json:"uid,omitempty"`
+}
+
+// A Selector selects an object.
+type Selector struct {
+	// MatchLabels ensures an object with matching labels is selected.
+	MatchLabels map[string]string `json:"matchLabels,omitempty"`
+
+	// MatchControllerRef ensures an object with the same controller reference
+	// as the selecting object is selected.
+	MatchControllerRef *bool `json:"matchControllerRef,omitempty"`
+}
+
+// SetGroupVersionKind sets the Kind and APIVersion of a TypedReference.
+func (obj *TypedReference) SetGroupVersionKind(gvk schema.GroupVersionKind) {
+	obj.APIVersion, obj.Kind = gvk.ToAPIVersionAndKind()
+}
+
+// GroupVersionKind gets the GroupVersionKind of a TypedReference.
+func (obj *TypedReference) GroupVersionKind() schema.GroupVersionKind {
+	return schema.FromAPIVersionAndKind(obj.APIVersion, obj.Kind)
+}
+
+// GetObjectKind get the ObjectKind of a TypedReference.
+func (obj *TypedReference) GetObjectKind() schema.ObjectKind { return obj }
+
+// A ResourceSpec defines the desired state of a managed resource.
+type ResourceSpec struct {
+	// ProviderConfigReference specifies how the provider that will be used to
+	// create, observe, update, and delete this managed resource should be
+	// configured.
+	// +kubebuilder:default={"name": "default"}
+	ProviderConfigReference *Reference `json:"providerConfigRef,omitempty"`
+
+	// DeletionPolicy specifies what will happen to the underlying external
+	// when this managed resource is deleted - either "Delete" or "Orphan" the
+	// external resource.
+	// +optional
+	// +kubebuilder:default=Delete
+	DeletionPolicy DeletionPolicy `json:"deletionPolicy,omitempty"`
+}
+
+// A ProviderConfigStatus defines the observed status of a ProviderConfig.
+type ProviderConfigStatus struct {
+	ConditionedStatus `json:",inline"`
+
+	// Users of this provider configuration.
+	Users int64 `json:"users,omitempty"`
+}
+
+// A ProviderConfigUsage is a record that a particular managed resource is using
+// a particular provider configuration.
+type ProviderConfigUsage struct {
+	// ProviderConfigReference to the provider config being used.
+	ProviderConfigReference Reference `json:"providerConfigRef"`
+
+	// ResourceReference to the managed resource using the provider config.
+	ResourceReference TypedReference `json:"resourceRef"`
 }
