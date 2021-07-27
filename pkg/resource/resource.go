@@ -24,7 +24,25 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
+
+// TargetConfigKinds contains the type metadata for a kind of target config.
+type TargetConfigKinds struct {
+	Config    schema.GroupVersionKind
+	Usage     schema.GroupVersionKind
+	UsageList schema.GroupVersionKind
+}
+
+// MustCreateObject returns a new Object of the supplied kind. It panics if the
+// kind is unknown to the supplied ObjectCreator.
+func MustCreateObject(kind schema.GroupVersionKind, oc runtime.ObjectCreater) runtime.Object {
+	obj, err := oc.New(kind)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
 
 // A ClientApplicator may be used to build a single 'client' that satisfies both
 // client.Client and Applicator.

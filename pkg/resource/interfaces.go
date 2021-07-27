@@ -71,6 +71,12 @@ type Active interface {
 	GetActive() bool
 }
 
+// A UserCounter can count how many users it has.
+type UserCounter interface {
+	SetUsers(i int64)
+	GetUsers() int64
+}
+
 // An Object is a Kubernetes object.
 type Object interface {
 	metav1.Object
@@ -81,6 +87,7 @@ type Object interface {
 type TargetConfig interface {
 	Object
 
+	UserCounter
 	Conditioned
 }
 
