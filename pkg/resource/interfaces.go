@@ -41,15 +41,21 @@ type TargetConditioned interface {
 }
 
 // A ProviderConfigReferencer may reference a provider config resource.
-type ProviderConfigReferencer interface {
-	GetProviderConfigReference() *nddv1.Reference
-	SetProviderConfigReference(p *nddv1.Reference)
+type TargetConfigReferencer interface {
+	GetTargetConfigReference() *nddv1.Reference
+	SetTargetConfigReference(p *nddv1.Reference)
 }
 
 // An Orphanable resource may specify a DeletionPolicy.
 type Orphanable interface {
 	SetDeletionPolicy(p nddv1.DeletionPolicy)
 	GetDeletionPolicy() nddv1.DeletionPolicy
+}
+
+// An Orphanable resource may specify a DeletionPolicy.
+type Active interface {
+	SetActive(p bool)
+	GetActive() bool
 }
 
 // An Object is a Kubernetes object.
@@ -76,8 +82,9 @@ type Finalizer interface {
 type Managed interface {
 	Object
 
-	ProviderConfigReferencer
+	TargetConfigReferencer
 	Orphanable
+	Active
 
 	Conditioned
 }
