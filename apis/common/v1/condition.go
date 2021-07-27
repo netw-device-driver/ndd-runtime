@@ -183,6 +183,17 @@ func (s *ConditionedStatus) Equal(other *ConditionedStatus) bool {
 	return true
 }
 
+// Unknown returns a condition that indicates the resource is in an 
+// unknown status.
+func Unknown() Condition {
+	return Condition{
+		Kind:               ConditionKindConfiguration,
+		Status:             corev1.ConditionFalse,
+		LastTransitionTime: metav1.Now(),
+		Reason:             ConditionReasonUnknown,
+	}
+}
+
 // Creating returns a condition that indicates the resource is currently
 // being created.
 func Creating() Condition {
