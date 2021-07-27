@@ -40,10 +40,23 @@ type TargetConditioned interface {
 	GetTargetCondition(target string, ck nddv1.ConditionKind) nddv1.Condition
 }
 
-// A ProviderConfigReferencer may reference a provider config resource.
+// A TargetConfigReferencer may reference a Target config resource.
 type TargetConfigReferencer interface {
 	GetTargetConfigReference() *nddv1.Reference
 	SetTargetConfigReference(p *nddv1.Reference)
+}
+
+// A RequiredTargetConfigReferencer may reference a Target config resource.
+// Unlike TargetConfigReferencer, the reference is required (i.e. not nil).
+type RequiredTargetConfigReferencer interface {
+	GetTargetConfigReference() nddv1.Reference
+	SetTargetConfigReference(p nddv1.Reference)
+}
+
+// A RequiredTypedResourceReferencer can reference a resource.
+type RequiredTypedResourceReferencer interface {
+	SetResourceReference(r nddv1.TypedReference)
+	GetResourceReference() nddv1.TypedReference
 }
 
 // An Orphanable resource may specify a DeletionPolicy.
@@ -64,11 +77,27 @@ type Object interface {
 	runtime.Object
 }
 
-// A ProviderConfig configures a Network Device Driver provider.
-type ProviderConfig interface {
+// A TargetConfig configures a Network Device Driver Target.
+type TargetConfig interface {
 	Object
 
 	Conditioned
+}
+
+// A TargetConfigUsage indicates a usage of a ndd target config.
+type TargetConfigUsage interface {
+	Object
+
+	RequiredTargetConfigReferencer
+	RequiredTypedResourceReferencer
+}
+
+// A TargetConfigUsageList is a list of Target config usages.
+type TargetConfigUsageList interface {
+	client.ObjectList
+
+	// GetItems returns the list of Target config usages.
+	GetItems() []TargetConfigUsage
 }
 
 // A Finalizer manages the finalizers on the resource.
