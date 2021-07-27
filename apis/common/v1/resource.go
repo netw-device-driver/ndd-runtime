@@ -74,11 +74,14 @@ func (obj *TypedReference) GetObjectKind() schema.ObjectKind { return obj }
 
 // A ResourceSpec defines the desired state of a managed resource.
 type ResourceSpec struct {
-	// ProviderConfigReference specifies how the provider that will be used to
-	// create, observe, update, and delete this managed resource should be
-	// configured.
+	// Active specifies if the managed resource is active or not
+	// +kubebuilder:default=true
+	Active bool `json:"active,omitempty"`
+
+	// TargetConfigReference specifies which network node/target will be used to
+	// create, observe, update, and delete this managed resource
 	// +kubebuilder:default={"name": "default"}
-	ProviderConfigReference *Reference `json:"providerConfigRef,omitempty"`
+	TargetConfigReference *Reference `json:"targetConfigRef,omitempty"`
 
 	// DeletionPolicy specifies what will happen to the underlying external
 	// when this managed resource is deleted - either "Delete" or "Orphan" the
@@ -91,7 +94,7 @@ type ResourceSpec struct {
 // ResourceStatus represents the observed state of a managed resource.
 type ResourceStatus struct {
 	ConditionedStatus `json:",inline"`
-	TargetConditions        map[string]*TargetConditions `json:"targetConditions,omitempty"`
+	TargetConditions  map[string]*TargetConditions `json:"targetConditions,omitempty"`
 }
 
 type TargetConditions struct {

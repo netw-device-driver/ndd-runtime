@@ -17,10 +17,6 @@ limitations under the License.
 package v1
 
 const (
-	// labels
-	TargetLabelKey      = "target"
-	TargetLabelValueAll = "all"
-
 	// errors
 	ErrFindingTargets = "cannot find targets"
 	ErrTargetNotFound = "cannot find a valid target"
