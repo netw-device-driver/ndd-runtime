@@ -21,9 +21,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// LabelKeyProviderName is added to ProviderConfigUsages to relate them to their
-// ProviderConfig.
-const LabelKeyProviderName = "ndd.henderiw.be/provider-config"
+// LabelKeyTargetName is added to TargetConfigUsages to relate them to their
+// TargetConfig.
+const LabelKeyTargetName = "ndd.henderiw.be/target-config"
 
 // A Reference to a named object.
 type Reference struct {
@@ -101,20 +101,20 @@ type TargetConditions struct {
 	ConditionedStatus `json:",inline"`
 }
 
-// A ProviderConfigStatus defines the observed status of a ProviderConfig.
-type ProviderConfigStatus struct {
+// A TargetConfigStatus defines the observed status of a TargetConfig.
+type TargetConfigStatus struct {
 	ConditionedStatus `json:",inline"`
 
-	// Users of this provider configuration.
+	// Users of this target configuration.
 	Users int64 `json:"users,omitempty"`
 }
 
-// A ProviderConfigUsage is a record that a particular managed resource is using
-// a particular provider configuration.
-type ProviderConfigUsage struct {
-	// ProviderConfigReference to the provider config being used.
-	ProviderConfigReference Reference `json:"providerConfigRef"`
+// A TargetConfigUsage is a record that a particular managed resource is using
+// a particular target configuration.
+type TargetConfigUsage struct {
+	// TargetConfigReference to the target config being used.
+	TargetConfigReference Reference `json:"targetConfigRef"`
 
-	// ResourceReference to the managed resource using the provider config.
+	// ResourceReference to the managed resource using the target config.
 	ResourceReference TypedReference `json:"resourceRef"`
 }
