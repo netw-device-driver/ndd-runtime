@@ -57,7 +57,7 @@ const (
 
 // Reasons a resource is or is not ready wrt configuration
 const (
-	ConditionReasonNone             ConditionReason = "None"
+	ConditionReasonUnknown          ConditionReason = "Unknown"
 	ConditionReasonCreating         ConditionReason = "Creating"
 	ConditionReasonDeleting         ConditionReason = "Deleting"
 	ConditionReasonReconcileSuccess ConditionReason = "ReconcileSuccess"
@@ -183,7 +183,7 @@ func (s *ConditionedStatus) Equal(other *ConditionedStatus) bool {
 	return true
 }
 
-// Unknown returns a condition that indicates the resource is in an 
+// Unknown returns a condition that indicates the resource is in an
 // unknown status.
 func Unknown() Condition {
 	return Condition{
