@@ -17,13 +17,15 @@ limitations under the License.
 package v1
 
 const (
+	// objects
+	TargetValueAll = "all"
 	// errors
 	ErrFindingTargets = "cannot find targets"
 	ErrTargetNotFound = "cannot find a valid target"
 
 	// info
 	InfoTargetDeleted = "target got deleted"
-	InfoTargetFound = "target(s) found"
+	InfoTargetFound   = "target(s) found"
 )
 
 type Target struct {
