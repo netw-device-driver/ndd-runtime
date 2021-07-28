@@ -40,6 +40,9 @@ const (
 	managedFinalizerName = "finalizer.managedresource.ndd.henderiw.be"
 	reconcileGracePeriod = 30 * time.Second
 	reconcileTimeout     = 1 * time.Minute
+	shortWait            = 30 * time.Second
+	veryShortWait        = 5 * time.Second
+	longWait             = 1 * time.Minute
 
 	defaultpollInterval = 1 * time.Minute
 
@@ -295,8 +298,6 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
-	// TO BE CHECKED
-
 	// We resolve any references before observing our external resource because
 	// in some rare examples we need a spec field to make the observe call, and
 	// that spec field could be set by a reference.
@@ -322,17 +323,27 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 	external, err := r.external.Connect(externalCtx, managed)
 	if err != nil {
-		
+
+		// if the target was not found it means the network node is not defined or not in a status
+		// to handle the reconciliation. A reconcilation retry will be triggered
+		if resource.IgnoreNotFound(err) == nil {
+			log.Debug("network node not found")
+			managed.SetConditions(nddv1.TargetNotFound())
+			return reconcile.Result{RequeueAfter: shortWait}, nil
+		}
 		// We'll usually hit this case if our Provider or its secret are missing
 		// or invalid. If this is first time we encounter this issue we'll be
 		// requeued implicitly when we update our status with the new error
 		// condition. If not, we requeue explicitly, which will trigger
 		// backoff.
-		log.Debug("Cannot connect to provider", "error", err)
+		log.Debug("Cannot connect to network node device driver", "error", err)
 		record.Event(managed, event.Warning(reasonCannotConnect, err))
 		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileConnect)))
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
+
+	// given we can connect to the network node device driver, the target is found
+	managed.SetConditions(nddv1.TargetFound())
 
 	observation, err := external.Observe(externalCtx, managed)
 	if err != nil {
