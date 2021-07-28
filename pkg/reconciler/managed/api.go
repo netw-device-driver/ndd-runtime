@@ -35,7 +35,7 @@ const (
 
 // NameAsExternalName writes the name of the managed resource to
 // the external name annotation field in order to be used as name of
-// the external resource in provider.
+// the external resource in Target.
 type NameAsExternalName struct{ client client.Client }
 
 // NewNameAsExternalName returns a new NameAsExternalName.
