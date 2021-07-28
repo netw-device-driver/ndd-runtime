@@ -322,6 +322,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 	external, err := r.external.Connect(externalCtx, managed)
 	if err != nil {
+		
 		// We'll usually hit this case if our Provider or its secret are missing
 		// or invalid. If this is first time we encounter this issue we'll be
 		// requeued implicitly when we update our status with the new error

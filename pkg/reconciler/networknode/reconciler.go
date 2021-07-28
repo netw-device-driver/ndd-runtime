@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package targetconfig
+package nn
 
 import (
 	"context"
@@ -35,15 +35,15 @@ import (
 )
 
 const (
-	finalizer = "in-use.henderiw.be"
+	finalizer = "in-use.ndd.henderiw.be"
 	shortWait = 30 * time.Second
 	timeout   = 2 * time.Minute
 
-	errGetTC        = "cannot get TargetConfig"
-	errListTCUs     = "cannot list TargetConfigUsages"
-	errDeleteTCU    = "cannot delete TargetConfigUsage"
-	errUpdate       = "cannot update TargetConfig"
-	errUpdateStatus = "cannot update TargetConfig status"
+	errGetNN        = "cannot get NetworkNode"
+	errListNNUs     = "cannot list NetworkNodeUsages"
+	errDeleteNNU    = "cannot delete NetworkNodeUsage"
+	errUpdate       = "cannot update NetworkNode"
+	errUpdateStatus = "cannot update NetworkNode status"
 )
 
 // Event reasons.
@@ -57,7 +57,7 @@ const (
 	ReasonInUse     nddv1.ConditionReason = "InUse"
 )
 
-// Terminating indicates a TargetConfig has been deleted, but that the
+// Terminating indicates a NetworkNode has been deleted, but that the
 // deletion is being blocked because it is still in use.
 func Terminating() nddv1.Condition {
 	return nddv1.Condition{
@@ -71,7 +71,7 @@ func Terminating() nddv1.Condition {
 // ControllerName returns the recommended name for controllers that use this
 // package to reconcile a particular kind of managed resource.
 func ControllerName(kind string) string {
-	return "targetconfig/" + strings.ToLower(kind)
+	return "NetworkNode/" + strings.ToLower(kind)
 }
 
 // A Reconciler reconciles managed resources by creating and managing the
@@ -81,8 +81,8 @@ func ControllerName(kind string) string {
 type Reconciler struct {
 	client client.Client
 
-	newConfig    func() resource.TargetConfig
-	newUsageList func() resource.TargetConfigUsageList
+	newConfig    func() resource.NetworkNode
+	newUsageList func() resource.NetworkNodeUsageList
 
 	log    logging.Logger
 	record event.Recorder
@@ -105,13 +105,13 @@ func WithRecorder(er event.Recorder) ReconcilerOption {
 	}
 }
 
-// NewReconciler returns a Reconciler of ProviderConfigs.
-func NewReconciler(m manager.Manager, of resource.TargetConfigKinds, o ...ReconcilerOption) *Reconciler {
-	nc := func() resource.TargetConfig {
-		return resource.MustCreateObject(of.Config, m.GetScheme()).(resource.TargetConfig)
+// NewReconciler returns a Reconciler of NetworkNode.
+func NewReconciler(m manager.Manager, of resource.NetworkNodeKinds, o ...ReconcilerOption) *Reconciler {
+	nc := func() resource.NetworkNode {
+		return resource.MustCreateObject(of.Config, m.GetScheme()).(resource.NetworkNode)
 	}
-	nul := func() resource.TargetConfigUsageList {
-		return resource.MustCreateObject(of.UsageList, m.GetScheme()).(resource.TargetConfigUsageList)
+	nul := func() resource.NetworkNodeUsageList {
+		return resource.MustCreateObject(of.UsageList, m.GetScheme()).(resource.NetworkNodeUsageList)
 	}
 
 	// Panic early if we've been asked to reconcile a resource kind that has not
@@ -135,7 +135,7 @@ func NewReconciler(m manager.Manager, of resource.TargetConfigKinds, o ...Reconc
 	return r
 }
 
-// Reconcile a TargetConfig by accounting for the managed resources that are
+// Reconcile a NetworkNode by accounting for the managed resources that are
 // using it, and ensuring it cannot be deleted until it is no longer in use.
 func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconcile.Result, error) {
 	log := r.log.WithValues("request", req)
@@ -149,8 +149,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		// In case object is not found, most likely the object was deleted and
 		// then disappeared while the event was in the processing queue. We
 		// don't need to take any action in that case.
-		log.Debug(errGetTC, "error", err)
-		return reconcile.Result{}, errors.Wrap(resource.IgnoreNotFound(err), errGetTC)
+		log.Debug(errGetNN, "error", err)
+		return reconcile.Result{}, errors.Wrap(resource.IgnoreNotFound(err), errGetNN)
 	}
 
 	log = log.WithValues(
@@ -160,9 +160,9 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	)
 
 	l := r.newUsageList()
-	if err := r.client.List(ctx, l, client.MatchingLabels{nddv1.LabelKeyTargetName: tc.GetName()}); err != nil {
-		log.Debug(errListTCUs, "error", err)
-		r.record.Event(tc, event.Warning(reasonAccount, errors.Wrap(err, errListTCUs)))
+	if err := r.client.List(ctx, l, client.MatchingLabels{nddv1.LabelKeyNetworkNodeName: tc.GetName()}); err != nil {
+		log.Debug(errListNNUs, "error", err)
+		r.record.Event(tc, event.Warning(reasonAccount, errors.Wrap(err, errListNNUs)))
 		return reconcile.Result{RequeueAfter: shortWait}, nil
 	}
 
@@ -174,8 +174,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			// We can safely delete it - it's either stale, or will be recreated
 			// next time the relevant managed resource connects.
 			if err := r.client.Delete(ctx, pcu); resource.IgnoreNotFound(err) != nil {
-				log.Debug(errDeleteTCU, "error", err)
-				r.record.Event(tc, event.Warning(reasonAccount, errors.Wrap(err, errDeleteTCU)))
+				log.Debug(errDeleteNNU, "error", err)
+				r.record.Event(tc, event.Warning(reasonAccount, errors.Wrap(err, errDeleteNNU)))
 				return reconcile.Result{RequeueAfter: shortWait}, nil
 			}
 			users--

@@ -16,6 +16,7 @@ limitations under the License.
 
 package v1
 
+/*
 const (
 	// objects
 	TargetValueAll = "all"
@@ -32,3 +33,4 @@ type Target struct {
 	Name string
 	DNS  string
 }
+*/

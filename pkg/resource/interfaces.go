@@ -40,17 +40,17 @@ type TargetConditioned interface {
 	GetTargetCondition(target string, ck nddv1.ConditionKind) nddv1.Condition
 }
 
-// A TargetConfigReferencer may reference a Target config resource.
-type TargetConfigReferencer interface {
-	GetTargetConfigReference() *nddv1.Reference
-	SetTargetConfigReference(p *nddv1.Reference)
+// A NetworkNodeReferencer may reference a Network Node resource.
+type NetworkNodeReferencer interface {
+	GetNetworkNodeReference() *nddv1.Reference
+	SetNetworkNodeReference(p *nddv1.Reference)
 }
 
-// A RequiredTargetConfigReferencer may reference a Target config resource.
-// Unlike TargetConfigReferencer, the reference is required (i.e. not nil).
-type RequiredTargetConfigReferencer interface {
-	GetTargetConfigReference() nddv1.Reference
-	SetTargetConfigReference(p nddv1.Reference)
+// A RequiredNetworkNodeReferencer may reference a network node config resource.
+// Unlike NetworkNodeReferencer, the reference is required (i.e. not nil).
+type RequiredNetworkNodeReferencer interface {
+	GetNetworkNodeReference() nddv1.Reference
+	SetNetworkNodeReference(p nddv1.Reference)
 }
 
 // A RequiredTypedResourceReferencer can reference a resource.
@@ -88,7 +88,7 @@ type Object interface {
 type Managed interface {
 	Object
 
-	TargetConfigReferencer
+	NetworkNodeReferencer
 	Orphanable
 	Active
 
@@ -103,28 +103,28 @@ type ManagedList interface {
 	GetItems() []Managed
 }
 
-// A TargetConfig configures a Network Device Driver Target.
-type TargetConfig interface {
+// A NetworkNode configures a NetworkNode Device Driver.
+type NetworkNode interface {
 	Object
 
 	UserCounter
 	Conditioned
 }
 
-// A TargetConfigUsage indicates a usage of a ndd target config.
-type TargetConfigUsage interface {
+// A NetworkNodeUsage indicates a usage of a network node config.
+type NetworkNodeUsage interface {
 	Object
 
-	RequiredTargetConfigReferencer
+	RequiredNetworkNodeReferencer
 	RequiredTypedResourceReferencer
 }
 
-// A TargetConfigUsageList is a list of Target config usages.
-type TargetConfigUsageList interface {
+// A NetworkNodeUsageList is a list of network node usages.
+type NetworkNodeUsageList interface {
 	client.ObjectList
 
-	// GetItems returns the list of Target config usages.
-	GetItems() []TargetConfigUsage
+	// GetItems returns the list of network node usages.
+	GetItems() []NetworkNodeUsage
 }
 
 // A Finalizer manages the finalizers on the resource.

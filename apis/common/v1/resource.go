@@ -21,9 +21,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// LabelKeyTargetName is added to TargetConfigUsages to relate them to their
-// TargetConfig.
-const LabelKeyTargetName = "ndd.henderiw.be/target-config"
+// LabelKeyNetworkNodeName is added to NetworkNodeUsages to relate them to their
+// NetworkNode.
+const LabelKeyNetworkNodeName = "ndd.henderiw.be/networknode"
 
 // A Reference to a named object.
 type Reference struct {
@@ -78,10 +78,10 @@ type ResourceSpec struct {
 	// +kubebuilder:default=true
 	Active bool `json:"active,omitempty"`
 
-	// TargetConfigReference specifies which network node/target will be used to
+	// NetworkNodeReference specifies which network node will be used to
 	// create, observe, update, and delete this managed resource
 	// +kubebuilder:default={"name": "default"}
-	TargetConfigReference *Reference `json:"targetConfigRef,omitempty"`
+	NetworkNodeReference *Reference `json:"networkNodeRef,omitempty"`
 
 	// DeletionPolicy specifies what will happen to the underlying external
 	// when this managed resource is deleted - either "Delete" or "Orphan" the
@@ -101,20 +101,20 @@ type TargetConditions struct {
 	ConditionedStatus `json:",inline"`
 }
 
-// A TargetConfigStatus defines the observed status of a TargetConfig.
-type TargetConfigStatus struct {
+// A NetworkNodeStatus defines the observed status of a NetworkNode.
+type NetworkNodeStatus struct {
 	ConditionedStatus `json:",inline"`
 
-	// Users of this target configuration.
+	// Users of this network node configuration.
 	Users int64 `json:"users,omitempty"`
 }
 
-// A TargetConfigUsage is a record that a particular managed resource is using
-// a particular target configuration.
-type TargetConfigUsage struct {
-	// TargetConfigReference to the target config being used.
-	TargetConfigReference Reference `json:"targetConfigRef"`
+// A NetworkNodeUsage is a record that a particular managed resource is using
+// a particular network node configuration.
+type NetworkNodeUsage struct {
+	// NetworkNodeReference to the network node config being used.
+	NetworkNodeReference Reference `json:"NetworkNodeRef"`
 
-	// ResourceReference to the managed resource using the target config.
+	// ResourceReference to the managed resource using the network node config.
 	ResourceReference TypedReference `json:"resourceRef"`
 }

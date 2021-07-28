@@ -28,8 +28,8 @@ import (
 )
 
 const (
-	errMissingTCRef = "managed resource does not reference a TargetConfig"
-	errApplyTCU     = "cannot apply TargetConfigUsage"
+	errMissingNNRef = "managed resource does not reference a NetworkNode"
+	errApplyNNU     = "cannot apply NetworkNodeUsage"
 )
 
 type errMissingRef struct{ error }
@@ -50,35 +50,35 @@ func (fn TrackerFn) Track(ctx context.Context, mg Managed) error {
 	return fn(ctx, mg)
 }
 
-// A TargetConfigUsageTracker tracks usages of a TargetConfig by creating or
-// updating the appropriate TargetConfigUsage.
-type TargetConfigUsageTracker struct {
+// A NetworkNodeUsageTracker tracks usages of a NetworkNode by creating or
+// updating the appropriate NetworkNodeUsage.
+type NetworkNodeUsageTracker struct {
 	c  Applicator
-	of TargetConfigUsage
+	of NetworkNodeUsage
 }
 
-// NewTargetConfigUsageTracker creates a TargetConfigUsageTracker.
-func NewTargetConfigUsageTracker(c client.Client, of TargetConfigUsage) *TargetConfigUsageTracker {
-	return &TargetConfigUsageTracker{c: NewAPIUpdatingApplicator(c), of: of}
+// NewNetworkNodeUsageTracker creates a NetworkNodeUsageTracker.
+func NewNetworkNodeUsageTracker(c client.Client, of NetworkNodeUsage) *NetworkNodeUsageTracker {
+	return &NetworkNodeUsageTracker{c: NewAPIUpdatingApplicator(c), of: of}
 }
 
-// Track that the supplied Managed resource is using the TargetConfig it
-// references by creating or updating a TargetConfigUsage. Track should be
-// called _before_ attempting to use the TargetConfig. This ensures the
+// Track that the supplied Managed resource is using the NetworkNode it
+// references by creating or updating a NetworkNodeUsage. Track should be
+// called _before_ attempting to use the NetworkNode. This ensures the
 // managed resource's usage is updated if the managed resource is updated to
-// reference a misconfigured TargetConfig.
-func (u *TargetConfigUsageTracker) Track(ctx context.Context, mg Managed) error {
-	pcu := u.of.DeepCopyObject().(TargetConfigUsage)
+// reference a misconfigured NetworkNode.
+func (u *NetworkNodeUsageTracker) Track(ctx context.Context, mg Managed) error {
+	pcu := u.of.DeepCopyObject().(NetworkNodeUsage)
 	gvk := mg.GetObjectKind().GroupVersionKind()
-	ref := mg.GetTargetConfigReference()
+	ref := mg.GetNetworkNodeReference()
 	if ref == nil {
-		return errMissingRef{errors.New(errMissingTCRef)}
+		return errMissingRef{errors.New(errMissingNNRef)}
 	}
 
 	pcu.SetName(string(mg.GetUID()))
-	pcu.SetLabels(map[string]string{nddv1.LabelKeyTargetName: ref.Name})
+	pcu.SetLabels(map[string]string{nddv1.LabelKeyNetworkNodeName: ref.Name})
 	pcu.SetOwnerReferences([]metav1.OwnerReference{meta.AsController(meta.TypedReferenceTo(mg, gvk))})
-	pcu.SetTargetConfigReference(nddv1.Reference{Name: ref.Name})
+	pcu.SetNetworkNodeReference(nddv1.Reference{Name: ref.Name})
 	pcu.SetResourceReference(nddv1.TypedReference{
 		APIVersion: gvk.GroupVersion().String(),
 		Kind:       gvk.Kind,
@@ -88,8 +88,8 @@ func (u *TargetConfigUsageTracker) Track(ctx context.Context, mg Managed) error 
 	err := u.c.Apply(ctx, pcu,
 		MustBeControllableBy(mg.GetUID()),
 		AllowUpdateIf(func(current, _ runtime.Object) bool {
-			return current.(TargetConfigUsage).GetTargetConfigReference() != pcu.GetTargetConfigReference()
+			return current.(NetworkNodeUsage).GetNetworkNodeReference() != pcu.GetNetworkNodeReference()
 		}),
 	)
-	return errors.Wrap(Ignore(IsNotAllowed, err), errApplyTCU)
+	return errors.Wrap(Ignore(IsNotAllowed, err), errApplyNNU)
 }

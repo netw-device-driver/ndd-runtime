@@ -28,40 +28,40 @@ type adder interface {
 	Add(item interface{})
 }
 
-// EnqueueRequestForTargetConfig enqueues a reconcile.Request for a referenced
-// TargetConfig.
-type EnqueueRequestForTargetConfig struct{}
+// EnqueueRequestForNetworkNode enqueues a reconcile.Request for a referenced
+// NetworkNode.
+type EnqueueRequestForNetworkNode struct{}
 
 // Create adds a NamespacedName for the supplied CreateEvent if its Object is a
-// TargetConfigReferencer.
-func (e *EnqueueRequestForTargetConfig) Create(evt event.CreateEvent, q workqueue.RateLimitingInterface) {
-	addTargetConfig(evt.Object, q)
+// NetworkNodeReferencer.
+func (e *EnqueueRequestForNetworkNode) Create(evt event.CreateEvent, q workqueue.RateLimitingInterface) {
+	addNetworkNode(evt.Object, q)
 }
 
 // Update adds a NamespacedName for the supplied UpdateEvent if its Objects are
-// a TargetConfigReferencer.
-func (e *EnqueueRequestForTargetConfig) Update(evt event.UpdateEvent, q workqueue.RateLimitingInterface) {
-	addTargetConfig(evt.ObjectOld, q)
-	addTargetConfig(evt.ObjectNew, q)
+// a NetworkNodeReferencer.
+func (e *EnqueueRequestForNetworkNode) Update(evt event.UpdateEvent, q workqueue.RateLimitingInterface) {
+	addNetworkNode(evt.ObjectOld, q)
+	addNetworkNode(evt.ObjectNew, q)
 }
 
 // Delete adds a NamespacedName for the supplied DeleteEvent if its Object is a
-// TargetConfigReferencer.
-func (e *EnqueueRequestForTargetConfig) Delete(evt event.DeleteEvent, q workqueue.RateLimitingInterface) {
-	addTargetConfig(evt.Object, q)
+// NetworkNodeReferencer.
+func (e *EnqueueRequestForNetworkNode) Delete(evt event.DeleteEvent, q workqueue.RateLimitingInterface) {
+	addNetworkNode(evt.Object, q)
 }
 
 // Generic adds a NamespacedName for the supplied GenericEvent if its Object is
-// a TargetConfigReferencer.
-func (e *EnqueueRequestForTargetConfig) Generic(evt event.GenericEvent, q workqueue.RateLimitingInterface) {
-	addTargetConfig(evt.Object, q)
+// a NetworkNodeReferencer.
+func (e *EnqueueRequestForNetworkNode) Generic(evt event.GenericEvent, q workqueue.RateLimitingInterface) {
+	addNetworkNode(evt.Object, q)
 }
 
-func addTargetConfig(obj runtime.Object, queue adder) {
-	pcr, ok := obj.(RequiredTargetConfigReferencer)
+func addNetworkNode(obj runtime.Object, queue adder) {
+	pcr, ok := obj.(RequiredNetworkNodeReferencer)
 	if !ok {
 		return
 	}
 
-	queue.Add(reconcile.Request{NamespacedName: types.NamespacedName{Name: pcr.GetTargetConfigReference().Name}})
+	queue.Add(reconcile.Request{NamespacedName: types.NamespacedName{Name: pcr.GetNetworkNodeReference().Name}})
 }
