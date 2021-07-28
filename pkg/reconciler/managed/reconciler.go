@@ -18,6 +18,7 @@ package managed
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	nddv1 "github.com/netw-device-driver/ndd-runtime/apis/common/v1"
@@ -51,6 +52,12 @@ const (
 	reasonCreated event.Reason = "CreatedExternalResource"
 	reasonUpdated event.Reason = "UpdatedExternalResource"
 )
+
+// ControllerName returns the recommended name for controllers that use this
+// package to reconcile a particular kind of managed resource.
+func ControllerName(kind string) string {
+	return "managed/" + strings.ToLower(kind)
+}
 
 // A Reconciler reconciles managed resources by creating and managing the
 // lifecycle of an external resource, i.e. a resource in an external network
@@ -297,10 +304,6 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
 	}
-
-
-
-
 
 	// We've successfully updated our external resource. Per the below issue
 	// nothing will notify us if and when the external resource we manage
