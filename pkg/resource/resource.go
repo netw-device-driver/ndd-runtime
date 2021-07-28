@@ -27,6 +27,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+// A ManagedKind contains the type metadata for a kind of managed resource.
+type ManagedKind schema.GroupVersionKind
+
 // TargetConfigKinds contains the type metadata for a kind of target config.
 type TargetConfigKinds struct {
 	Config    schema.GroupVersionKind

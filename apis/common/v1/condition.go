@@ -37,29 +37,33 @@ const (
 	// handled per resource
 	ConditionKindTarget ConditionKind = "TargetFound"
 	// handled per target per resource
-	ConditionKindConfiguration ConditionKind = "ConfigurationSuccess"
+	ConditionKindSynced ConditionKind = "Synced"
+	// handled per target per resource
+	ConditionKindReady ConditionKind = "Ready"
 )
 
 // A ConditionReason represents the reason a resource is in a condition.
 type ConditionReason string
 
 // Reasons a resource validation is or is not ok
+// applicable to leafref validation and target validation
 const (
 	ConditionReasonSuccess ConditionReason = "Success"
 	ConditionReasonFailed  ConditionReason = "Failed"
 )
 
-// Reasons a resource target is or is not ok
+// Reasons a resource is or is not ready
 const (
-	ConditionReasonFound    ConditionReason = "Target Found"
-	ConditionReasonNotFound ConditionReason = "No valid target Found"
+	ConditionReasonUnknown     ConditionReason = "Unknown"
+	ConditionReasonCreating    ConditionReason = "Creating"
+	ConditionReasonDeleting    ConditionReason = "Deleting"
+	ConditionReasonUpdating    ConditionReason = "Updating"
+	ConditionReasonUnavailable ConditionReason = "UnAvailable"
+	ConditionReasonAvailable   ConditionReason = "Available"
 )
 
-// Reasons a resource is or is not ready wrt configuration
+// Reasons a resource is or is not synced.
 const (
-	ConditionReasonUnknown          ConditionReason = "Unknown"
-	ConditionReasonCreating         ConditionReason = "Creating"
-	ConditionReasonDeleting         ConditionReason = "Deleting"
 	ConditionReasonReconcileSuccess ConditionReason = "ReconcileSuccess"
 	ConditionReasonReconcileFailure ConditionReason = "ReconcileFailure"
 )
@@ -187,7 +191,7 @@ func (s *ConditionedStatus) Equal(other *ConditionedStatus) bool {
 // unknown status.
 func Unknown() Condition {
 	return Condition{
-		Kind:               ConditionKindConfiguration,
+		Kind:               ConditionKindReady,
 		Status:             corev1.ConditionFalse,
 		LastTransitionTime: metav1.Now(),
 		Reason:             ConditionReasonUnknown,
@@ -198,10 +202,21 @@ func Unknown() Condition {
 // being created.
 func Creating() Condition {
 	return Condition{
-		Kind:               ConditionKindConfiguration,
+		Kind:               ConditionKindReady,
 		Status:             corev1.ConditionFalse,
 		LastTransitionTime: metav1.Now(),
 		Reason:             ConditionReasonCreating,
+	}
+}
+
+// Updating returns a condition that indicates the resource is currently
+// being updated.
+func Updating() Condition {
+	return Condition{
+		Kind:               ConditionKindReady,
+		Status:             corev1.ConditionFalse,
+		LastTransitionTime: metav1.Now(),
+		Reason:             ConditionReasonUpdating,
 	}
 }
 
@@ -209,32 +224,59 @@ func Creating() Condition {
 // being deleted.
 func Deleting() Condition {
 	return Condition{
-		Kind:               ConditionKindConfiguration,
+		Kind:               ConditionKindReady,
 		Status:             corev1.ConditionFalse,
 		LastTransitionTime: metav1.Now(),
 		Reason:             ConditionReasonDeleting,
 	}
 }
 
-// ReconcileSuccess returns a condition that indicates the resource is
-// currently successfully reconciled
+// Available returns a condition that indicates the resource is
+// currently observed to be available for use.
+func Available() Condition {
+	return Condition{
+		Kind:               ConditionKindReady,
+		Status:             corev1.ConditionTrue,
+		LastTransitionTime: metav1.Now(),
+		Reason:             ConditionReasonAvailable,
+	}
+}
+
+// Unavailable returns a condition that indicates the resource is not
+// currently available for use. Unavailable should be set only when ndd
+// expects the resource to be available but knows it is not, for example
+// because its API reports it is unhealthy.
+func Unavailable() Condition {
+	return Condition{
+		Kind:               ConditionKindReady,
+		Status:             corev1.ConditionFalse,
+		LastTransitionTime: metav1.Now(),
+		Reason:             ConditionReasonUnavailable,
+	}
+}
+
+// ReconcileSuccess returns a condition indicating that ndd successfully
+// completed the most recent reconciliation of the resource.
 func ReconcileSuccess() Condition {
 	return Condition{
-		Kind:               ConditionKindConfiguration,
+		Kind:               ConditionKindSynced,
 		Status:             corev1.ConditionTrue,
 		LastTransitionTime: metav1.Now(),
 		Reason:             ConditionReasonReconcileSuccess,
 	}
 }
 
-// Unavailable returns a condition that indicates the resource is not
-// currently available for use.
-func ReconcileFailure() Condition {
+// ReconcileError returns a condition indicating that ndd encountered an
+// error while reconciling the resource. This could mean ndd was
+// unable to update the resource to reflect its desired state, or that
+// ndd was unable to determine the current actual state of the resource.
+func ReconcileError(err error) Condition {
 	return Condition{
-		Kind:               ConditionKindConfiguration,
+		Kind:               ConditionKindSynced,
 		Status:             corev1.ConditionFalse,
 		LastTransitionTime: metav1.Now(),
 		Reason:             ConditionReasonReconcileFailure,
+		Message:            err.Error(),
 	}
 }
 
@@ -245,7 +287,7 @@ func TargetFound() Condition {
 		Kind:               ConditionKindTarget,
 		Status:             corev1.ConditionTrue,
 		LastTransitionTime: metav1.Now(),
-		Reason:             ConditionReasonFound,
+		Reason:             ConditionReasonSuccess,
 	}
 }
 
@@ -256,7 +298,7 @@ func TargetNotFound() Condition {
 		Kind:               ConditionKindTarget,
 		Status:             corev1.ConditionFalse,
 		LastTransitionTime: metav1.Now(),
-		Reason:             ConditionReasonNotFound,
+		Reason:             ConditionReasonFailed,
 	}
 }
 

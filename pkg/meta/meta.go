@@ -26,6 +26,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+// AnnotationKeyExternalName is the key in the annotations map of a resource for
+// the name of the resource as it appears on provider's systems.
+const AnnotationKeyExternalName = "ndd.henderiw.be/external-name"
+
 // TypedReferenceTo returns a typed object reference to the supplied object,
 // presumed to be of the supplied group, version, and kind.
 func TypedReferenceTo(o metav1.Object, of schema.GroupVersionKind) *nddv1.TypedReference {
@@ -197,4 +201,14 @@ func WasCreated(o metav1.Object) bool {
 	// returns a reference while CreationTimestamp returns a value.
 	t := o.GetCreationTimestamp()
 	return !t.IsZero()
+}
+
+// GetExternalName returns the external name annotation value on the resource.
+func GetExternalName(o metav1.Object) string {
+	return o.GetAnnotations()[AnnotationKeyExternalName]
+}
+
+// SetExternalName sets the external name annotation of the resource.
+func SetExternalName(o metav1.Object, name string) {
+	AddAnnotations(o, map[string]string{AnnotationKeyExternalName: name})
 }

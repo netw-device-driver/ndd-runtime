@@ -83,6 +83,26 @@ type Object interface {
 	runtime.Object
 }
 
+// A Managed is a Kubernetes object representing a concrete managed
+// resource (e.g. a CloudSQL instance).
+type Managed interface {
+	Object
+
+	TargetConfigReferencer
+	Orphanable
+	Active
+
+	Conditioned
+}
+
+// A ManagedList is a list of managed resources.
+type ManagedList interface {
+	client.ObjectList
+
+	// GetItems returns the list of managed resources.
+	GetItems() []Managed
+}
+
 // A TargetConfig configures a Network Device Driver Target.
 type TargetConfig interface {
 	Object
@@ -111,24 +131,4 @@ type TargetConfigUsageList interface {
 type Finalizer interface {
 	AddFinalizer(ctx context.Context, obj Object) error
 	RemoveFinalizer(ctx context.Context, obj Object) error
-}
-
-// A Managed is a Kubernetes object representing a concrete managed
-// resource (e.g. a CloudSQL instance).
-type Managed interface {
-	Object
-
-	TargetConfigReferencer
-	Orphanable
-	Active
-
-	Conditioned
-}
-
-// A ManagedList is a list of managed resources.
-type ManagedList interface {
-	client.ObjectList
-
-	// GetItems returns the list of managed resources.
-	GetItems() []Managed
 }
