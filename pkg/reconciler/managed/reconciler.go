@@ -18,6 +18,7 @@ package managed
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -323,10 +324,12 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 	external, err := r.external.Connect(externalCtx, managed)
 	if err != nil {
+		log.Debug("network node probably not found")
+		//return reconcile.Result{RequeueAfter: shortWait}, nil
 
 		// if the target was not found it means the network node is not defined or not in a status
 		// to handle the reconciliation. A reconcilation retry will be triggered
-		if resource.IgnoreNotFound(err) == nil {
+		if strings.Contains(fmt.Sprintf("%s", err), "not found") {
 			log.Debug("network node not found")
 			managed.SetConditions(nddv1.TargetNotFound())
 			return reconcile.Result{RequeueAfter: shortWait}, nil
