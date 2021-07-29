@@ -243,10 +243,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	ctx, cancel := context.WithTimeout(context.Background(), r.timeout+reconcileGracePeriod)
 	defer cancel()
 
-	// Govet linter has a check for lost cancel funcs but it's a false positive
-	// for child contexts as because parent's cancel is called, so we skip it
-	// for this line.
-	externalCtx, _ := context.WithTimeout(ctx, r.timeout) // nolint:govet
+	// will be augmented with a cancel function in the grpc call
+	externalCtx := context.Background() // nolint:govet
 
 	managed := r.newManaged()
 	if err := r.client.Get(ctx, req.NamespacedName, managed); err != nil {
