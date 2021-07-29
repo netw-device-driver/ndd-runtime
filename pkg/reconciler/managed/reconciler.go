@@ -267,7 +267,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 	// If managed resource has a deletion timestamp and and a deletion policy of
 	// Orphan, we do not need to observe the external resource before attempting
-	// to unpublish connection details and remove finalizer.
+	// to remove finalizer.
 	if meta.WasDeleted(managed) && managed.GetDeletionPolicy() == nddv1.DeletionOrphan {
 		log = log.WithValues("deletion-timestamp", managed.GetDeletionTimestamp())
 		managed.SetConditions(nddv1.Deleting())
@@ -287,15 +287,6 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		// longer exist and thus there is no point trying to update its status.
 		log.Debug("Successfully deleted managed resource")
 		return reconcile.Result{Requeue: false}, nil
-	}
-
-	if err := r.managed.AddFinalizer(ctx, managed); err != nil {
-		// If this is the first time we encounter this issue we'll be requeued
-		// implicitly when we update our status with the new error condition. If
-		// not, we requeue explicitly, which will trigger backoff.
-		log.Debug("Cannot add finalizer", "error", err)
-		managed.SetConditions(nddv1.ReconcileError(err))
-		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
 	if err := r.managed.Initialize(ctx, managed); err != nil {
