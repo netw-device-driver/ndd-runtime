@@ -329,7 +329,9 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 		// if the target was not found it means the network node is not defined or not in a status
 		// to handle the reconciliation. A reconcilation retry will be triggered
-		if strings.Contains(fmt.Sprintf("%s", err), "not found") {
+		if strings.Contains(fmt.Sprintf("%s", err), "not found") || 
+			strings.Contains(fmt.Sprintf("%s", err), "not configured") ||
+			strings.Contains(fmt.Sprintf("%s", err), "not configured"){
 			log.Debug("network node not found")
 			managed.SetConditions(nddv1.TargetNotFound())
 			return reconcile.Result{RequeueAfter: shortWait}, nil
