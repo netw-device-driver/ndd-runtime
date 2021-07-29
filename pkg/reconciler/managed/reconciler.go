@@ -29,8 +29,6 @@ import (
 	"github.com/netw-device-driver/ndd-runtime/pkg/resource"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -278,7 +276,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			// condition. If not, we requeue explicitly, which will trigger
 			// backoff.
 			log.Debug("Cannot remove managed resource finalizer", "error", err)
-			managed.SetConditions(nddv1.ReconcileError(err))
+			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
 
@@ -295,7 +293,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		// not, we requeue explicitly, which will trigger backoff.
 		log.Debug("Cannot initialize managed resource", "error", err)
 		record.Event(managed, event.Warning(reasonCannotInitialize, err))
-		managed.SetConditions(nddv1.ReconcileError(err))
+		managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
@@ -317,23 +315,20 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			// requeue explicitly, which will trigger backoff.
 			log.Debug("Cannot resolve managed resource references", "error", err)
 			record.Event(managed, event.Warning(reasonCannotResolveRefs, err))
-			managed.SetConditions(nddv1.ReconcileError(err))
+			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
 	}
 
 	external, err := r.external.Connect(externalCtx, managed)
 	if err != nil {
-		log.Debug("network node probably not found")
-		//return reconcile.Result{RequeueAfter: shortWait}, nil
-
 		// if the target was not found it means the network node is not defined or not in a status
 		// to handle the reconciliation. A reconcilation retry will be triggered
-		if strings.Contains(fmt.Sprintf("%s", err), "not found") || 
+		if strings.Contains(fmt.Sprintf("%s", err), "not found") ||
 			strings.Contains(fmt.Sprintf("%s", err), "not configured") ||
-			strings.Contains(fmt.Sprintf("%s", err), "not configured"){
+			strings.Contains(fmt.Sprintf("%s", err), "not ready") {
 			log.Debug("network node not found")
-			managed.SetConditions(nddv1.TargetNotFound())
+			managed.SetConditions(nddv1.TargetNotFound(), nddv1.Unknown(), nddv1.ReconcileSuccess())
 			return reconcile.Result{RequeueAfter: shortWait}, nil
 		}
 		log.Debug("network node error different from not found")
@@ -344,11 +339,9 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		// backoff.
 		log.Debug("Cannot connect to network node device driver", "error", err)
 		record.Event(managed, event.Warning(reasonCannotConnect, err))
-		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileConnect)))
+		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileConnect)), nddv1.Unknown(), nddv1.TargetFound())
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
-
-	log.Debug("External Client", "client", external)
 
 	// given we can connect to the network node device driver, the target is found
 	managed.SetConditions(nddv1.TargetFound())
@@ -363,7 +356,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		// trigger backoff.
 		log.Debug("Cannot observe external resource", "error", err)
 		record.Event(managed, event.Warning(reasonCannotObserve, err))
-		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileObserve)))
+		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileObserve)), nddv1.Unknown())
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
@@ -383,7 +376,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 				// explicitly, which will trigger backoff.
 				log.Debug("Cannot delete external resource", "error", err)
 				record.Event(managed, event.Warning(reasonCannotDelete, err))
-				managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileDelete)))
+				managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileDelete)), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
 
@@ -397,7 +390,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			log.Debug("Successfully requested deletion of external resource")
 			record.Event(managed, event.Normal(reasonDeleted, "Successfully requested deletion of external resource"))
 			managed.SetConditions(nddv1.ReconcileSuccess())
-			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
 
 		if err := r.managed.RemoveFinalizer(ctx, managed); err != nil {
@@ -406,7 +399,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			// condition. If not, we requeue explicitly, which will trigger
 			// backoff.
 			log.Debug("Cannot remove managed resource finalizer", "error", err)
-			managed.SetConditions(nddv1.ReconcileError(err))
+			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
 
@@ -418,53 +411,27 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		return reconcile.Result{Requeue: false}, nil
 	}
 
-	/*
 	if err := r.managed.AddFinalizer(ctx, managed); err != nil {
 		// If this is the first time we encounter this issue we'll be requeued
 		// implicitly when we update our status with the new error condition. If
 		// not, we requeue explicitly, which will trigger backoff.
 		log.Debug("Cannot add finalizer", "error", err)
-		managed.SetConditions(nddv1.ReconcileError(err))
+		managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
-	*/
 
 	if !observation.ResourceExists {
-		managed.SetConditions(nddv1.Creating())
-		creation, err := external.Create(externalCtx, managed)
-		if err != nil {
-			// We'll hit this condition if we can't create our external
-			// resource, for example if our provider credentials don't have
-			// access to create it. If this is the first time we encounter this
+		if _, err := external.Create(externalCtx, managed); err != nil {
+			// We'll hit this condition if the grpc connection fails.
+			// If this is the first time we encounter this
 			// issue we'll be requeued implicitly when we update our status with
 			// the new error condition. If not, we requeue explicitly, which will trigger backoff.
 			log.Debug("Cannot create external resource", "error", err)
 			record.Event(managed, event.Warning(reasonCannotCreate, err))
-			managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileCreate)))
+			managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileCreate)), nddv1.Unknown())
 			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
-
-		if creation.ExternalNameAssigned {
-			en := meta.GetExternalName(managed)
-			// We will retry in all cases where the error comes from the api-server.
-			// At one point, context deadline will be exceeded and we'll get out
-			// of the loop. In that case, we warn the user that the external resource
-			// might be leaked.
-			err := retry.OnError(retry.DefaultRetry, resource.IsAPIError, func() error {
-				nn := types.NamespacedName{Name: managed.GetName()}
-				if err := r.client.Get(ctx, nn, managed); err != nil {
-					return err
-				}
-				meta.SetExternalName(managed, en)
-				return r.client.Update(ctx, managed)
-			})
-			if err != nil {
-				log.Debug("Cannot update managed resource", "error", err)
-				record.Event(managed, event.Warning(reasonCannotUpdateManaged, errors.Wrap(err, errUpdateManagedAfterCreate)))
-				managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errUpdateManagedAfterCreate)))
-				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-			}
-		}
+		managed.SetConditions(nddv1.Creating())
 
 		// We've successfully created our external resource. In many cases the
 		// creation process takes a little time to finish. We requeue explicitly
@@ -473,24 +440,26 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		log.Debug("Successfully requested creation of external resource")
 		record.Event(managed, event.Normal(reasonCreated, "Successfully requested creation of external resource"))
 		managed.SetConditions(nddv1.ReconcileSuccess())
-		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
-	if observation.ResourceLateInitialized {
-		// Note that this update may reset any pending updates to the status of
-		// the managed resource from when it was observed above. This is because
-		// the API server replies to the update with its unchanged view of the
-		// resource's status, which is subsequently deserialized into managed.
-		// This is usually tolerable because the update will implicitly requeue
-		// an immediate reconcile which should re-observe the external resource
-		// and persist its status.
-		if err := r.client.Update(ctx, managed); err != nil {
-			log.Debug(errUpdateManaged, "error", err)
-			record.Event(managed, event.Warning(reasonCannotUpdateManaged, err))
-			managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errUpdateManaged)))
-			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+	/*
+		if observation.ResourceLateInitialized {
+			// Note that this update may reset any pending updates to the status of
+			// the managed resource from when it was observed above. This is because
+			// the API server replies to the update with its unchanged view of the
+			// resource's status, which is subsequently deserialized into managed.
+			// This is usually tolerable because the update will implicitly requeue
+			// an immediate reconcile which should re-observe the external resource
+			// and persist its status.
+			if err := r.client.Update(ctx, managed); err != nil {
+				log.Debug(errUpdateManaged, "error", err)
+				record.Event(managed, event.Warning(reasonCannotUpdateManaged, err))
+				managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errUpdateManaged)), nddv1.Unknown())
+				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			}
 		}
-	}
+	*/
 
 	if observation.ResourceUpToDate {
 		// We did not need to create, update, or delete our external resource.
@@ -498,9 +467,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		// resource we manage changes, so we requeue a speculative reconcile
 		// after the specified poll interval in order to observe it and react
 		// accordingly.
-		// https://github.com/crossplane/crossplane/issues/289
 		log.Debug("External resource is up to date", "requeue-after", time.Now().Add(r.pollInterval))
-		managed.SetConditions(nddv1.ReconcileSuccess())
+		managed.SetConditions(nddv1.ReconcileSuccess(), nddv1.Available())
 		return reconcile.Result{RequeueAfter: r.pollInterval}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
@@ -512,7 +480,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		// condition. If not, we requeue explicitly, which will trigger backoff.
 		log.Debug("Cannot update external resource")
 		record.Event(managed, event.Warning(reasonCannotUpdate, err))
-		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileUpdate)))
+		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileUpdate)), nddv1.Unknown())
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
@@ -520,9 +488,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	// nothing will notify us if and when the external resource we manage
 	// changes, so we requeue a speculative reconcile after the specified poll
 	// interval in order to observe it and react accordingly.
-	// TBD -> we could check the deviation behavior here
 	log.Debug("Successfully requested update of external resource", "requeue-after", time.Now().Add(r.pollInterval))
 	record.Event(managed, event.Normal(reasonUpdated, "Successfully requested update of external resource"))
-	managed.SetConditions(nddv1.ReconcileSuccess())
-	return reconcile.Result{RequeueAfter: r.pollInterval}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+	managed.SetConditions(nddv1.ReconcileSuccess(), nddv1.Updating())
+	return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 }
