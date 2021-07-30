@@ -16,21 +16,18 @@ limitations under the License.
 
 package v1
 
-/*
-const (
-	// objects
-	TargetValueAll = "all"
-	// errors
-	ErrFindingTargets = "cannot find targets"
-	ErrTargetNotFound = "cannot find a valid target"
-
-	// info
-	InfoTargetDeleted = "target got deleted"
-	InfoTargetFound   = "target(s) found"
-)
+import "github.com/netw-device-driver/ndd-grpc/ndd"
 
 type Target struct {
 	Name string
-	DNS  string
+	Cfg  ndd.Config
 }
-*/
+
+func (t * Target) IsTargetDeleted(ns []string) bool {
+	for _, an := range ns {
+		if an == t.Name {
+			return false
+		}
+	}
+	return true
+}

@@ -69,6 +69,9 @@ type ExternalClient interface {
 	// Delete the external resource upon deletion of its associated Managed
 	// resource. Called when the managed resource has been deleted.
 	Delete(ctx context.Context, mg resource.Managed) error
+
+	// GetTarget returns the targets the resource is assigned assigned to
+	GetTarget() []string
 }
 
 // ExternalClientFns are a series of functions that satisfy the ExternalClient
@@ -132,6 +135,9 @@ func (c *NopClient) Update(ctx context.Context, mg resource.Managed) (ExternalUp
 
 // Delete does nothing. It never returns an error.
 func (c *NopClient) Delete(ctx context.Context, mg resource.Managed) error { return nil }
+
+// GetTarget return on empty string list
+func (c *NopClient) GetTarget() []string { return make([]string, 0) }
 
 // An ExternalObservation is the result of an observation of an external
 // resource.

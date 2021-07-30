@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/go-logr/logr v0.4.0
 	github.com/google/go-cmp v0.5.6
+	github.com/netw-device-driver/ndd-grpc v0.1.3
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.6.0
 	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6

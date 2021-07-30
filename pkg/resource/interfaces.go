@@ -33,11 +33,10 @@ type Conditioned interface {
 	GetCondition(ck nddv1.ConditionKind) nddv1.Condition
 }
 
-// A TargetConditioned may have conditions set or retrieved. TargetConditioned are typically
-// indicate the status of both a resource and its reconciliation process.
-type TargetConditioned interface {
-	SetTargetConditions(target string, c ...nddv1.Condition)
-	GetTargetCondition(target string, ck nddv1.ConditionKind) nddv1.Condition
+// A Target may have targets
+type Target interface {
+	SetTarget(target []string)
+	GetTarget() []string
 }
 
 // A NetworkNodeReferencer may reference a Network Node resource.
@@ -93,6 +92,7 @@ type Managed interface {
 	Active
 
 	Conditioned
+	Target
 }
 
 // A ManagedList is a list of managed resources.

@@ -320,6 +320,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 	external, err := r.external.Connect(externalCtx, managed)
 	if err != nil {
+		// set empty target
+		managed.SetTarget(make([]string, 0))
 		// if the target was not found it means the network node is not defined or not in a status
 		// to handle the reconciliation. A reconcilation retry will be triggered
 		if strings.Contains(fmt.Sprintf("%s", err), "not found") ||
@@ -327,7 +329,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			strings.Contains(fmt.Sprintf("%s", err), "not ready") {
 			log.Debug("network node not found")
 			managed.SetConditions(nddv1.TargetNotFound(), nddv1.Unknown(), nddv1.ReconcileSuccess())
-			return reconcile.Result{RequeueAfter: shortWait}, nil
+			return reconcile.Result{RequeueAfter: shortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
 		log.Debug("network node error different from not found")
 		// We'll usually hit this case if our Provider or its secret are missing
@@ -341,8 +343,12 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
+	
+
 	// given we can connect to the network node device driver, the target is found
+	// update codition and update the status field
 	managed.SetConditions(nddv1.TargetFound())
+	managed.SetTarget(external.GetTarget())
 
 	observation, err := external.Observe(externalCtx, managed)
 	if err != nil {

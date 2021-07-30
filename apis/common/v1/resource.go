@@ -94,11 +94,7 @@ type ResourceSpec struct {
 // ResourceStatus represents the observed state of a managed resource.
 type ResourceStatus struct {
 	ConditionedStatus `json:",inline"`
-	TargetConditions  map[string]*TargetConditions `json:"targetConditions,omitempty"`
-}
-
-type TargetConditions struct {
-	ConditionedStatus `json:",inline"`
+	Target            []string `json:"target,omitempty"`
 }
 
 // A NetworkNodeStatus defines the observed status of a NetworkNode.
