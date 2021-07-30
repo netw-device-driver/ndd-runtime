@@ -178,7 +178,7 @@ func WithExternalConnecter(c ExternalConnecter) ReconcilerOption {
 	}
 }
 
-func WithExternalValidator(v Validator) ReconcilerOption {
+func WithValidator(v Validator) ReconcilerOption {
 	return func(r *Reconciler) {
 		r.validator.Validator = v
 	}
@@ -245,6 +245,7 @@ func NewReconciler(m manager.Manager, of resource.ManagedKind, o ...ReconcilerOp
 		timeout:      reconcileTimeout,
 		managed:      defaultMRManaged(m),
 		external:     defaultMRExternal(),
+		validator:    defaultMRValidator(),
 		log:          logging.NewNopLogger(),
 		record:       event.NewNopRecorder(),
 	}
