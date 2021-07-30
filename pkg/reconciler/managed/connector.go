@@ -72,15 +72,20 @@ type ExternalClient interface {
 
 	// GetTarget returns the targets the resource is assigned assigned to
 	GetTarget() []string
+
+	// GetConfig returns the full configuration of the network node
+	GetConfig(ctx context.Context) ([]byte, error)
 }
 
 // ExternalClientFns are a series of functions that satisfy the ExternalClient
 // interface.
 type ExternalClientFns struct {
-	ObserveFn func(ctx context.Context, mg resource.Managed) (ExternalObservation, error)
-	CreateFn  func(ctx context.Context, mg resource.Managed) (ExternalCreation, error)
-	UpdateFn  func(ctx context.Context, mg resource.Managed) (ExternalUpdate, error)
-	DeleteFn  func(ctx context.Context, mg resource.Managed) error
+	ObserveFn                  func(ctx context.Context, mg resource.Managed) (ExternalObservation, error)
+	CreateFn                   func(ctx context.Context, mg resource.Managed) (ExternalCreation, error)
+	UpdateFn                   func(ctx context.Context, mg resource.Managed) (ExternalUpdate, error)
+	DeleteFn                   func(ctx context.Context, mg resource.Managed) error
+	GetTargetFn                func() []string
+	GetConfigFn                func(ctx context.Context) ([]byte, error)
 }
 
 // Observe the external resource the supplied Managed resource represents, if
@@ -105,6 +110,16 @@ func (e ExternalClientFns) Update(ctx context.Context, mg resource.Managed) (Ext
 // resource.
 func (e ExternalClientFns) Delete(ctx context.Context, mg resource.Managed) error {
 	return e.DeleteFn(ctx, mg)
+}
+
+// GetTarget return the real target for the external resource
+func (e ExternalClientFns) GetTarget() []string {
+	return e.GetTargetFn()
+}
+
+// GetConfig returns the full configuration of the network node
+func (e ExternalClientFns) GetConfig(ctx context.Context) ([]byte, error) {
+	return e.GetConfigFn(ctx)
 }
 
 // A NopConnecter does nothing.
@@ -138,6 +153,11 @@ func (c *NopClient) Delete(ctx context.Context, mg resource.Managed) error { ret
 
 // GetTarget return on empty string list
 func (c *NopClient) GetTarget() []string { return make([]string, 0) }
+
+// GetConfig returns the full configuration of the network node
+func (c *NopClient) GetConfig(ctx context.Context) ([]byte, error) {
+	return make([]byte, 0), nil
+}
 
 // An ExternalObservation is the result of an observation of an external
 // resource.
@@ -197,10 +217,5 @@ type ExternalCreation struct {
 
 // An ExternalUpdate is the result of an update to an external resource.
 type ExternalUpdate struct {
-	// ConnectionDetails required to connect to this resource. These details
-	// are a set that is collated throughout the managed resource's lifecycle -
-	// i.e. returning new connection details will have no affect on old details
-	// unless an existing key is overwritten. Crossplane may publish these
-	// credentials to a store (e.g. a Secret).
-	ConnectionDetails ConnectionDetails
+
 }

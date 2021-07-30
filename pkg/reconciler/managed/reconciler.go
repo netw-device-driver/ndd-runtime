@@ -46,25 +46,37 @@ const (
 	defaultpollInterval = 1 * time.Minute
 
 	// errors
-	errGetManaged               = "cannot get managed resource"
-	errUpdateManagedAfterCreate = "cannot update managed resource. this may have resulted in a leaked external resource"
-	errReconcileConnect         = "connect failed"
-	errReconcileObserve         = "observe failed"
-	errReconcileCreate          = "create failed"
-	errReconcileUpdate          = "update failed"
-	errReconcileDelete          = "delete failed"
+	errGetManaged                        = "cannot get managed resource"
+	errUpdateManagedAfterCreate          = "cannot update managed resource. this may have resulted in a leaked external resource"
+	errReconcileConnect                  = "connect failed"
+	errReconcileObserve                  = "observe failed"
+	errReconcileCreate                   = "create failed"
+	errReconcileUpdate                   = "update failed"
+	errReconcileDelete                   = "delete failed"
+	errReconcileGetConfig                = "get config failed"
+	errReconcileValidateLocalLeafRef     = "validation local leafref failed"
+	errReconcileValidateExternalLeafRef  = "validation externaal leafref failed"
+	errReconcileValidateParentDependency = "validation parent dependency failed"
 
 	// Event reasons.
-	reasonCannotConnect       event.Reason = "CannotConnectToProvider"
-	reasonCannotInitialize    event.Reason = "CannotInitializeManagedResource"
-	reasonCannotResolveRefs   event.Reason = "CannotResolveResourceReferences"
-	reasonCannotObserve       event.Reason = "CannotObserveExternalResource"
-	reasonCannotCreate        event.Reason = "CannotCreateExternalResource"
-	reasonCannotDelete        event.Reason = "CannotDeleteExternalResource"
-	reasonCannotPublish       event.Reason = "CannotPublishConnectionDetails"
-	reasonCannotUnpublish     event.Reason = "CannotUnpublishConnectionDetails"
-	reasonCannotUpdate        event.Reason = "CannotUpdateExternalResource"
-	reasonCannotUpdateManaged event.Reason = "CannotUpdateManagedResource"
+	reasonCannotConnect                  event.Reason = "CannotConnectToProvider"
+	reasonCannotInitialize               event.Reason = "CannotInitializeManagedResource"
+	reasonCannotResolveRefs              event.Reason = "CannotResolveResourceReferences"
+	reasonCannotObserve                  event.Reason = "CannotObserveExternalResource"
+	reasonCannotCreate                   event.Reason = "CannotCreateExternalResource"
+	reasonCannotDelete                   event.Reason = "CannotDeleteExternalResource"
+	reasonCannotPublish                  event.Reason = "CannotPublishConnectionDetails"
+	reasonCannotUnpublish                event.Reason = "CannotUnpublishConnectionDetails"
+	reasonCannotUpdate                   event.Reason = "CannotUpdateExternalResource"
+	reasonCannotUpdateManaged            event.Reason = "CannotUpdateManagedResource"
+	reasonCannotGetConfig                event.Reason = "CannotGetConfigExternalResource"
+	reasonCannotValidateLocalLeafRef     event.Reason = "CannotValidateLocalLeafRef"
+	reasonCannotValidateExternalLeafRef  event.Reason = "CannotValidateExternalLeafRef"
+	reasonCannotValidateParentDependency event.Reason = "CannotValidateParentDependency"
+	reasonCannotGetValidTarget           event.Reason = "CannotGetValidTarget"
+	reasonValidateLocalLeafRefFailed     event.Reason = "ValidateLocalLeafRefFailed"
+	reasonValidateExternalLeafRefFailed  event.Reason = "ValidateExternalLeafRefFailed"
+	reasonValidateParentDependencyFailed event.Reason = "ValidateParentDependencyFailed"
 
 	reasonDeleted event.Reason = "DeletedExternalResource"
 	reasonCreated event.Reason = "CreatedExternalResource"
@@ -92,11 +104,22 @@ type Reconciler struct {
 	// managed resource reconciler. We do this primarily for readability, so
 	// that the reconciler logic reads r.external.Connect(),
 	// r.managed.Delete(), etc.
-	external mrExternal
-	managed  mrManaged
+	external  mrExternal
+	managed   mrManaged
+	validator mrValidator
 
 	log    logging.Logger
 	record event.Recorder
+}
+
+type mrValidator struct {
+	Validator
+}
+
+func defaultMRValidator() mrValidator {
+	return mrValidator{
+		Validator: &NopValidator{},
+	}
 }
 
 type mrManaged struct {
@@ -155,13 +178,11 @@ func WithExternalConnecter(c ExternalConnecter) ReconcilerOption {
 	}
 }
 
-// WithConnectionPublishers specifies how the Reconciler should publish
-// its connection details such as credentials and endpoints.
-//func WithConnectionPublishers(p ...ConnectionPublisher) ReconcilerOption {
-//	return func(r *Reconciler) {
-//		r.managed.ConnectionPublisher = PublisherChain(p)
-//	}
-//}
+func WithExternalValidator(v Validator) ReconcilerOption {
+	return func(r *Reconciler) {
+		r.validator.Validator = v
+	}
+}
 
 // WithInitializers specifies how the Reconciler should initialize a
 // managed resource before calling any of the ExternalClient functions.
@@ -328,7 +349,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			strings.Contains(fmt.Sprintf("%s", err), "not configured") ||
 			strings.Contains(fmt.Sprintf("%s", err), "not ready") {
 			log.Debug("network node not found")
-			managed.SetConditions(nddv1.TargetNotFound(), nddv1.Unknown(), nddv1.ReconcileSuccess())
+			record.Event(managed, event.Warning(reasonCannotGetValidTarget, err))
+			managed.SetConditions(nddv1.TargetNotFound(), nddv1.Unavailable(), nddv1.ReconcileSuccess())
 			return reconcile.Result{RequeueAfter: shortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
 		log.Debug("network node error different from not found")
@@ -339,16 +361,68 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		// backoff.
 		log.Debug("Cannot connect to network node device driver", "error", err)
 		record.Event(managed, event.Warning(reasonCannotConnect, err))
-		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileConnect)), nddv1.Unknown(), nddv1.TargetFound())
+		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileConnect)), nddv1.Unavailable(), nddv1.TargetFound())
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
-
-	
 
 	// given we can connect to the network node device driver, the target is found
 	// update codition and update the status field
 	managed.SetConditions(nddv1.TargetFound())
 	managed.SetTarget(external.GetTarget())
+
+	// get the full configuration of the network node in order to do leafref and parent validation
+	cfg, err := external.GetConfig(externalCtx)
+	if err != nil {
+		log.Debug("Cannot get network node configuration", "error", err)
+		record.Event(managed, event.Warning(reasonCannotGetConfig, err))
+		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileGetConfig)), nddv1.Unknown())
+		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+	}
+
+	localLeafrefObservation, err := r.validator.ValidateLocalleafRef(ctx, managed)
+	if err != nil {
+		log.Debug("Cannot validate local leafref", "error", err)
+		record.Event(managed, event.Warning(reasonCannotValidateLocalLeafRef, err))
+		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileValidateLocalLeafRef)), nddv1.Unknown())
+		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+	}
+	if !localLeafrefObservation.Success {
+		log.Debug("local leafref validation failed", "error", err)
+		record.Event(managed, event.Warning(reasonValidateLocalLeafRefFailed, err))
+		managed.SetConditions(nddv1.InternalLeafRefValidationFailure(), nddv1.Unavailable(), nddv1.ReconcileSuccess())
+		return reconcile.Result{RequeueAfter: shortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+	}
+	managed.SetConditions(nddv1.InternalLeafRefValidationSuccess())
+
+	externalLeafrefObservation, err := r.validator.ValidateExternalleafRef(ctx, managed, cfg)
+	if err != nil {
+		log.Debug("Cannot validate external leafref", "error", err)
+		record.Event(managed, event.Warning(reasonCannotValidateExternalLeafRef, err))
+		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileValidateExternalLeafRef)), nddv1.Unknown())
+		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+	}
+	if !externalLeafrefObservation.Success {
+		log.Debug("external leafref validation failed", "error", err)
+		record.Event(managed, event.Warning(reasonValidateExternalLeafRefFailed, err))
+		managed.SetConditions(nddv1.ExternalLeafRefValidationFailure(), nddv1.Unavailable(), nddv1.ReconcileSuccess())
+		return reconcile.Result{RequeueAfter: shortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+	}
+	managed.SetConditions(nddv1.ExternalLeafRefValidationSuccess())
+
+	parentDependencyObservation, err := r.validator.ValidateParentDependency(ctx, managed, cfg)
+	if err != nil {
+		log.Debug("Cannot validate parent dependency", "error", err)
+		record.Event(managed, event.Warning(reasonCannotValidateParentDependency, err))
+		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileValidateParentDependency)), nddv1.Unknown())
+		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+	}
+	if !parentDependencyObservation.Success {
+		log.Debug("parent dependency validation failed", "error", err)
+		record.Event(managed, event.Warning(reasonValidateParentDependencyFailed, err))
+		managed.SetConditions(nddv1.ParentValidationFailure(), nddv1.Unavailable(), nddv1.ReconcileSuccess())
+		return reconcile.Result{RequeueAfter: shortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+	}
+	managed.SetConditions(nddv1.ParentValidationSuccess())
 
 	observation, err := external.Observe(externalCtx, managed)
 	if err != nil {
