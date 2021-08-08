@@ -106,7 +106,6 @@ func (p *PackageParser) Parse(ctx context.Context, reader io.ReadCloser) (*Packa
 		if len(bytes) == 0 {
 			continue
 		}
-		fmt.Printf("bytes: %s\n", bytes)
 		m, _, err := dm.Decode(bytes, nil, nil)
 		if err != nil {
 			o, _, err := do.Decode(bytes, nil, nil)
