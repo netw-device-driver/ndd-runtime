@@ -161,8 +161,10 @@ func (r *Resource) GetAbsoluteName() string {
 	// we remove the "-" from the element names otherwise we get a name clash when we parse all the Yang information
 	newElem := make([]*config.PathElem, 0)
 	for _, entry := range e {
+		name := strings.ReplaceAll(entry.Name, "-", "")
+		name = strings.ReplaceAll(entry.Name, "ethernetsegment", "esi")
 		pathElem := &config.PathElem{
-			Name: strings.ReplaceAll(entry.Name, "-", ""),
+			Name: ,
 			Key:  entry.GetKey(),
 		}
 		newElem = append(newElem, pathElem)
