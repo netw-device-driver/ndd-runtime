@@ -162,9 +162,9 @@ func (r *Resource) GetAbsoluteName() string {
 	newElem := make([]*config.PathElem, 0)
 	for _, entry := range e {
 		name := strings.ReplaceAll(entry.Name, "-", "")
-		name = strings.ReplaceAll(entry.Name, "ethernetsegment", "esi")
+		name = strings.ReplaceAll(name, "ethernetsegment", "esi")
 		pathElem := &config.PathElem{
-			Name: ,
+			Name: name,
 			Key:  entry.GetKey(),
 		}
 		newElem = append(newElem, pathElem)
