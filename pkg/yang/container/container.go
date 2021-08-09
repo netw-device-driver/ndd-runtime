@@ -17,27 +17,27 @@ limitations under the License.
 package container
 
 type Container struct {
-	Name    string            `json:"name,omitempty"`
-	Entries []*Entry          `json:"entries,omitempty"`
-	Prev    *Container        `json:"prev,omitempty"`
+	Name    string     `json:"name,omitempty"`
+	Entries []*Entry   `json:"entries,omitempty"`
+	Prev    *Container `json:"prev,omitempty"`
 }
 
 // Entry structure keeps track of the elements in a struct/list
 type Entry struct {
-	Next          *Container  `json:"prev,omitempty"`
-	Prev          *Container  `json:"next,omitempty"`
-	Name          string      `json:"name,omitempty"`
-	Type          string      `json:"type,omitempty"`
-	Enum          []string    `json:"enum,omitempty"`
-	EnumString    string      `json:"enumString,omitempty"`
-	Range         []int       `json:"range,omitempty"`
-	Length        []int       `json:"length,omitempty"`
-	Pattern       []string    `json:"pattern,omitempty"`
-	PatternString string      `json:"patternString,omitempty"`
-	Union         bool        `json:"union,omitempty"`
-	Mandatory     bool        `json:"mandatory,omitempty"`
-	Default       string      `json:"default,omitempty"`
-	Key           string      `json:"key,omitempty"`
+	Next          *Container `json:"prev,omitempty"`
+	Prev          *Container `json:"next,omitempty"`
+	Name          string     `json:"name,omitempty"`
+	Type          string     `json:"type,omitempty"`
+	Enum          []string   `json:"enum,omitempty"`
+	EnumString    string     `json:"enumString,omitempty"`
+	Range         []int      `json:"range,omitempty"`
+	Length        []int      `json:"length,omitempty"`
+	Pattern       []string   `json:"pattern,omitempty"`
+	PatternString string     `json:"patternString,omitempty"`
+	Union         bool       `json:"union,omitempty"`
+	Mandatory     bool       `json:"mandatory,omitempty"`
+	Default       string     `json:"default,omitempty"`
+	Key           string     `json:"key,omitempty"`
 }
 
 type ContainerOption func(c *Container)
@@ -154,4 +154,16 @@ func NewEntry(n string, opts ...EntryOption) *Entry {
 	}
 
 	return e
+}
+
+func (e *Entry) GetKey() string {
+	return e.Key
+}
+
+func (e *Entry) GetName() string {
+	return e.Name
+}
+
+func (e *Entry) GetType() string {
+	return e.Type
 }
