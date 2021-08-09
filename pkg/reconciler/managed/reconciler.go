@@ -409,8 +409,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 	if !localLeafrefObservation.Success {
-		log.Debug("local leafref validation failed", "error", err)
-		record.Event(managed, event.Warning(reasonValidateLocalLeafRefFailed, err))
+		log.Debug("local leafref validation failed", "error", errors.New("validation failed"))
+		record.Event(managed, event.Warning(reasonValidateLocalLeafRefFailed, errors.New("validation failed")))
 		managed.SetConditions(nddv1.InternalLeafRefValidationFailure(), nddv1.Unavailable(), nddv1.ReconcileSuccess())
 		return reconcile.Result{RequeueAfter: shortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
@@ -424,8 +424,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 	if !externalLeafrefObservation.Success {
-		log.Debug("external leafref validation failed", "error", err)
-		record.Event(managed, event.Warning(reasonValidateExternalLeafRefFailed, err))
+		log.Debug("external leafref validation failed", "error", errors.New("validation failed"))
+		record.Event(managed, event.Warning(reasonValidateExternalLeafRefFailed, errors.New("validation failed")))
 		managed.SetConditions(nddv1.ExternalLeafRefValidationFailure(), nddv1.Unavailable(), nddv1.ReconcileSuccess())
 		return reconcile.Result{RequeueAfter: shortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
@@ -439,8 +439,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 	if !parentDependencyObservation.Success {
-		log.Debug("parent dependency validation failed", "error", err)
-		record.Event(managed, event.Warning(reasonValidateParentDependencyFailed, err))
+		log.Debug("parent dependency validation failed", "error", errors.New("validation failed"))
+		record.Event(managed, event.Warning(reasonValidateParentDependencyFailed, errors.New("validation failed")))
 		managed.SetConditions(nddv1.ParentValidationFailure(), nddv1.Unavailable(), nddv1.ReconcileSuccess())
 		return reconcile.Result{RequeueAfter: shortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
