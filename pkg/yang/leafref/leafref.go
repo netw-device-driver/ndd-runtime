@@ -159,7 +159,7 @@ func (rlref *ResolvedLeafRef) PopulateLocalLeafRefKey(x interface{}, idx int) {
 func (rlref *ResolvedLeafRef) PopulateRemoteLeafRefKey() {
 	split := strings.Split(rlref.Value, ".")
 	n := 0
-	for _, PathElem := range rlref.RemotePath.Elem {
+	for _, PathElem := range rlref.RemotePath.GetElem() {
 		if len(PathElem.GetKey()) != 0 {
 			for k := range PathElem.GetKey() {
 				PathElem.GetKey()[k] = split[n]
@@ -170,6 +170,7 @@ func (rlref *ResolvedLeafRef) PopulateRemoteLeafRefKey() {
 }
 
 func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found bool) {
+	fmt.Printf("FindRemoteLeafRef Entry: idx: %d, data: %v", idx, x1)
 	switch x := x1.(type) {
 	case map[string]interface{}:
 		for k, x2 := range x {
@@ -178,6 +179,7 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 				if idx == len(rlref.RemotePath.GetElem())-1 {
 					// check if the element in the path has a key
 					if len(rlref.RemotePath.GetElem()[idx].GetKey()) != 0 {
+						fmt.Printf("FindRemoteLeafRef map[string]interface{} List with Key: idx: %d, data: %v", idx, x2)
 						// given the element has a key we need to go through the []interface{} part
 						return rlref.FindRemoteLeafRef(x2, idx)
 					} else {
@@ -208,15 +210,16 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 			switch x2 := v.(type) {
 			case map[string]interface{}:
 				for k3, x3 := range x2 {
+					fmt.Printf("FindRemoteLeafRef []interface{} idx: %d, k3: %v, x3: %v", idx, k3, x3)
 					if k3 == rlref.RemotePath.GetElem()[idx].GetName() {
 						// check if this is the last element/index in the path
 						if idx == len(rlref.RemotePath.GetElem())-1 {
 							// return the value
 							if x3 == rlref.Value {
 								return true
-							} else {
-								return false
 							}
+							// we should not return here since there can be multiple elements in the
+							// list and we need to exercise them all, the geenric return will take care of it
 						} else {
 							idx++
 							return rlref.FindRemoteLeafRef(x2, idx)
@@ -225,7 +228,7 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 				}
 			}
 		}
-		//we will use the geenric return here
+		//we will use the genric return here
 	case nil:
 		return false
 	}
