@@ -230,6 +230,10 @@ func (r *Resource) SetRootContainerEntry(e *container.Entry) {
 	r.RootContainerEntry = e
 }
 
+func (r *Resource) GetAbsoluteLevel() int {
+	return len(r.GetAbsoluteGnmiActualResourcePath().GetElem())
+}
+
 func (r *Resource) GetHierarchicalElements() []*HeInfo {
 	he := make([]*HeInfo, 0)
 	if r.DependsOn != nil {
