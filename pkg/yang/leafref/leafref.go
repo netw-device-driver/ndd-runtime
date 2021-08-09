@@ -213,11 +213,12 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 					fmt.Printf("FindRemoteLeafRef []interface{} 1 idx: %d, k3: %v, x3: %v\n", idx, k3, x3)
 					if len(rlref.RemotePath.GetElem()[idx].GetKey()) != 0 {
 						for k := range rlref.RemotePath.GetElem()[idx].GetKey() {
+							fmt.Printf("FindRemoteLeafRef []interface{} 2 idx: %d, k3: %v, k: %v\n", idx, k3, k)
 							if k3 == k {
 								// check if this is the last element/index in the path
 								if idx == len(rlref.RemotePath.GetElem())-1 {
 									// return the value
-									fmt.Printf("FindRemoteLeafRef []interface{} 2 idx: %d, k3: %v, x3: %v, rlref.Value: %v\n", idx, k3, x3, rlref.Value)
+									fmt.Printf("FindRemoteLeafRef []interface{} 3 idx: %d, k3: %v, x3: %v, rlref.Value: %v\n", idx, k3, x3, rlref.Value)
 									if x3 == rlref.Value {
 										return true
 									}
