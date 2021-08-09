@@ -148,8 +148,16 @@ func (r *Resource) GetRelativeGnmiActualResourcePath() *config.Path {
 	return &actPath
 }
 
+// GetPath returns the relative Path of the resource
+// For the root resources we need to strip the first entry of the path since srl uses some prefix entry
 func (r *Resource) GetPath() *config.Path {
-	return r.Path
+	if r.DependsOn != nil {
+		return r.Path
+	}
+	// we need to remove the first entry of the PathElem of the root resource
+	actPath := r.Path
+	actPath.Elem = actPath.Elem[1:(len(actPath.GetElem()))]
+	return actPath
 }
 
 func (r *Resource) GetRelativeXPath() *string {
