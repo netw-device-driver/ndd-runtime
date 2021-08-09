@@ -170,7 +170,7 @@ func (rlref *ResolvedLeafRef) PopulateRemoteLeafRefKey() {
 }
 
 func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found bool) {
-	fmt.Printf("FindRemoteLeafRef Entry: idx: %d, data: %v", idx, x1)
+	fmt.Printf("FindRemoteLeafRef Entry: idx: %d, data: %v\n", idx, x1)
 	switch x := x1.(type) {
 	case map[string]interface{}:
 		for k, x2 := range x {
@@ -179,7 +179,7 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 				if idx == len(rlref.RemotePath.GetElem())-1 {
 					// check if the element in the path has a key
 					if len(rlref.RemotePath.GetElem()[idx].GetKey()) != 0 {
-						fmt.Printf("FindRemoteLeafRef map[string]interface{} List with Key: idx: %d, data: %v", idx, x2)
+						fmt.Printf("FindRemoteLeafRef map[string]interface{} List with Key: idx: %d, data: %v\n", idx, x2)
 						// given the element has a key we need to go through the []interface{} part
 						return rlref.FindRemoteLeafRef(x2, idx)
 					} else {
@@ -210,11 +210,12 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 			switch x2 := v.(type) {
 			case map[string]interface{}:
 				for k3, x3 := range x2 {
-					fmt.Printf("FindRemoteLeafRef []interface{} idx: %d, k3: %v, x3: %v", idx, k3, x3)
+					fmt.Printf("FindRemoteLeafRef []interface{} 1 idx: %d, k3: %v, x3: %v\n", idx, k3, x3)
 					if k3 == rlref.RemotePath.GetElem()[idx].GetName() {
 						// check if this is the last element/index in the path
 						if idx == len(rlref.RemotePath.GetElem())-1 {
 							// return the value
+							fmt.Printf("FindRemoteLeafRef []interface{} 2 idx: %d, k3: %v, x3: %v, rlref.Value: %v\n", idx, k3, x3, rlref.Value)
 							if x3 == rlref.Value {
 								return true
 							}
