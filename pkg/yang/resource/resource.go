@@ -148,6 +148,10 @@ func (r *Resource) GetRelativeGnmiActualResourcePath() *config.Path {
 	return &actPath
 }
 
+func (r *Resource) GetPath() *config.Path {
+	return r.Path
+}
+
 func (r *Resource) GetRelativeXPath() *string {
 	return parser.GnmiPathToXPath(r.Path, true)
 }
