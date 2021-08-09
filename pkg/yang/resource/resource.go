@@ -234,6 +234,10 @@ func findPathElemHierarchy(r *Resource) []*config.PathElem {
 	return r.Path.GetElem()
 }
 
+func (r *Resource) GetRootContainerEntry() *container.Entry {
+	return r.RootContainerEntry
+}
+
 func (r *Resource) SetRootContainerEntry(e *container.Entry) {
 	r.RootContainerEntry = e
 }
