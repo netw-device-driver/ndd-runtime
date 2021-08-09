@@ -342,6 +342,27 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 	external, err := r.external.Connect(externalCtx, managed)
 	if err != nil {
+		if meta.WasDeleted(managed) {
+			// when there is no target and we were requested to be deleted we can remove the 
+			// finalizer since the target is no longer there and we assume cleanup will happen
+			// during target delete/create
+			if err := r.managed.RemoveFinalizer(ctx, managed); err != nil {
+				// If this is the first time we encounter this issue we'll be
+				// requeued implicitly when we update our status with the new error
+				// condition. If not, we requeue explicitly, which will trigger
+				// backoff.
+				log.Debug("Cannot remove managed resource finalizer", "error", err)
+				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			}
+	
+			// We've successfully deleted our external resource (if necessary) and
+			// removed our finalizer. If we assume we were the only controller that
+			// added a finalizer to this resource then it should no longer exist and
+			// thus there is no point trying to update its status.
+			log.Debug("Successfully deleted managed resource")
+			return reconcile.Result{Requeue: false}, nil
+		}
 		// set empty target
 		managed.SetTarget(make([]string, 0))
 		// if the target was not found it means the network node is not defined or not in a status
