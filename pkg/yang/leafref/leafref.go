@@ -211,21 +211,27 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 			case map[string]interface{}:
 				for k3, x3 := range x2 {
 					fmt.Printf("FindRemoteLeafRef []interface{} 1 idx: %d, k3: %v, x3: %v\n", idx, k3, x3)
-					if k3 == rlref.RemotePath.GetElem()[idx].GetName() {
-						// check if this is the last element/index in the path
-						if idx == len(rlref.RemotePath.GetElem())-1 {
-							// return the value
-							fmt.Printf("FindRemoteLeafRef []interface{} 2 idx: %d, k3: %v, x3: %v, rlref.Value: %v\n", idx, k3, x3, rlref.Value)
-							if x3 == rlref.Value {
-								return true
+					if len(rlref.RemotePath.GetElem()[idx].GetKey()) != 0 {
+						for k := range rlref.RemotePath.GetElem()[idx].GetKey() {
+							if k3 == k {
+								// check if this is the last element/index in the path
+								if idx == len(rlref.RemotePath.GetElem())-1 {
+									// return the value
+									fmt.Printf("FindRemoteLeafRef []interface{} 2 idx: %d, k3: %v, x3: %v, rlref.Value: %v\n", idx, k3, x3, rlref.Value)
+									if x3 == rlref.Value {
+										return true
+									}
+									// we should not return here since there can be multiple elements in the
+									// list and we need to exercise them all, the geenric return will take care of it
+								} else {
+									idx++
+									return rlref.FindRemoteLeafRef(x2, idx)
+								}
 							}
-							// we should not return here since there can be multiple elements in the
-							// list and we need to exercise them all, the geenric return will take care of it
-						} else {
-							idx++
-							return rlref.FindRemoteLeafRef(x2, idx)
 						}
 					}
+
+					
 				}
 			}
 		}
