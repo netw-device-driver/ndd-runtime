@@ -292,7 +292,7 @@ func ProcessLeafRef(e *yang.Entry, resfullPath string, activeResPath *config.Pat
 	return nil, nil, false
 }
 
-// removeHierarchicalKeys removes the hierarchical keys from the data
+// RemoveHierarchicalKeys removes the hierarchical keys from the data
 func RemoveHierarchicalKeys(d []byte, hids []string) ([]byte, error) {
 	var x map[string]interface{}
 	json.Unmarshal(d, &x)
