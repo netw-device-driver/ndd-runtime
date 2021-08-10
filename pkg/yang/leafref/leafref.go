@@ -237,8 +237,8 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 											return true
 										}
 									case float64:
-										fmt.Printf("a: %s, b: %s\n", fmt.Sprintf("%f", x), rlref.Value)
-										if fmt.Sprintf("%f", x) == rlref.Value {
+										fmt.Printf("a: %s, b: %s\n", fmt.Sprintf("%.0f", x), rlref.Value)
+										if fmt.Sprintf("%.0f", x) == rlref.Value {
 											return true
 										}
 									default:
