@@ -46,11 +46,11 @@ func NewLeafReaf(lPath, rPath *config.Path) *LeafRef {
 // ResolveLeafRefWithJSONObject resolved the leafref in the data/object supplied via the path and returns the leafref values and leafref path augmnted with the data of the leaf reference
 // we can have multiple leafrefs in an object and hence we return a list with the leafref values and the leafref path (witht the Populateed data of the object)
 func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx int, resolvedLeafRefs []*ResolvedLeafRef) []*ResolvedLeafRef {
-	fmt.Printf("ResolveLeafRefWithJSONObject entry, idx %d, lridx: %d\n x1: %v", idx, lridx, x1)
+	fmt.Printf("ResolveLeafRefWithJSONObject entry, idx %d, lridx: %d\n x1: %v\n", idx, lridx, x1)
 	switch x := x1.(type) {
 	case map[string]interface{}:
 		for k, x2 := range x {
-			fmt.Printf("ResolveLeafRefWithJSONObject map[string]interface{}, idx %d, lridx: %d\n k: %s, x2: %v\n l.LocalPath: %v", idx, lridx, k, x2, l.LocalPath)
+			fmt.Printf("ResolveLeafRefWithJSONObject map[string]interface{}, idx %d, lridx: %d\n k: %s, x2: %v\n l.LocalPath: %v\n", idx, lridx, k, x2, l.LocalPath)
 			if k == l.LocalPath.GetElem()[idx].GetName() {
 				// check if this is the last element/index in the path
 				if idx == len(l.LocalPath.GetElem())-1 {
@@ -84,11 +84,11 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 	case []interface{}:
 		resolvedLeafRefsOrig := resolvedLeafRefs[lridx]
 		for n, v := range x {
-			fmt.Printf("ResolveLeafRefWithJSONObject []interface{}, idx %d, lridx: %d\n n: %d, v: %v\n l.LocalPath: %v", idx, lridx, n, v, l.LocalPath)
+			fmt.Printf("ResolveLeafRefWithJSONObject []interface{}, idx %d, lridx: %d\n n: %d, v: %v\n l.LocalPath: %v\n", idx, lridx, n, v, l.LocalPath)
 			switch x2 := v.(type) {
 			case map[string]interface{}:
 				for k3, x3 := range x2 {
-					fmt.Printf("ResolveLeafRefWithJSONObject []interface{}, idx %d, lridx: %d\n n: %d, k3: %s, x3: %v\n l.LocalPath: %v", idx, lridx, n, k3, x3, l.LocalPath)
+					fmt.Printf("ResolveLeafRefWithJSONObject []interface{}, idx %d, lridx: %d\n n: %d, k3: %s, x3: %v\n l.LocalPath: %v\n", idx, lridx, n, k3, x3, l.LocalPath)
 					if k3 == l.LocalPath.GetElem()[idx].GetName() {
 						if n > 0 {
 							resolvedLeafRefs = append(resolvedLeafRefs, resolvedLeafRefsOrig)
