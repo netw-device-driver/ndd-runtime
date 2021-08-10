@@ -17,6 +17,8 @@ limitations under the License.
 package parser
 
 import (
+	"encoding/json"
+	"fmt"
 	"strings"
 
 	config "github.com/netw-device-driver/ndd-grpc/config/configpb"
@@ -288,4 +290,23 @@ func ProcessLeafRef(e *yang.Entry, resfullPath string, activeResPath *config.Pat
 		}
 	}
 	return nil, nil, false
+}
+
+// removeHierarchicalKeys removes the hierarchical keys from the data
+func RemoveHierarchicalKeys(d []byte, hids []string) ([]byte, error) {
+	var x map[string]interface{}
+	json.Unmarshal(d, &x)
+
+	fmt.Printf("data before hierarchical key removal: %v\n", x)
+
+	for k := range x {
+		for _, h := range hids {
+			if k == h {
+				delete(x, k)
+			}
+		}
+	}
+
+	fmt.Printf("data after hierarchical key removal: %v\n", x)
+	return json.Marshal(x)
 }
