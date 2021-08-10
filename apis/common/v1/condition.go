@@ -324,6 +324,17 @@ func InternalLeafRefValidationFailure() Condition {
 	}
 }
 
+// InternalLeafRefValidationUnknown returns a condition that indicates
+// the internal leafref validation is unknown
+func InternalLeafRefValidationUnknown() Condition {
+	return Condition{
+		Kind:               ConditionKindInternalLeafRef,
+		Status:             corev1.ConditionFalse,
+		LastTransitionTime: metav1.Now(),
+		Reason:             ConditionReasonUnknown,
+	}
+}
+
 // ExternalLeafRefValidationSuccess returns a condition that indicates
 // the resource leafreference(s) are found or no leafrefs exist
 func ExternalLeafRefValidationSuccess() Condition {
@@ -346,6 +357,17 @@ func ExternalLeafRefValidationFailure() Condition {
 	}
 }
 
+// ExternalLeafRefValidationUnknown returns a condition that indicates
+// the external leafref validation is unknown
+func ExternalLeafRefValidationUnknown() Condition {
+	return Condition{
+		Kind:               ConditionKindExternalLeafRef,
+		Status:             corev1.ConditionFalse,
+		LastTransitionTime: metav1.Now(),
+		Reason:             ConditionReasonUnknown,
+	}
+}
+
 // ParentValidationFailure returns a condition that indicates
 // the resource parent is found
 func ParentValidationSuccess() Condition {
@@ -365,5 +387,16 @@ func ParentValidationFailure() Condition {
 		Status:             corev1.ConditionFalse,
 		LastTransitionTime: metav1.Now(),
 		Reason:             ConditionReasonFailed,
+	}
+}
+
+// ParentValidationUnknown returns a condition that indicates
+// the parent validation is unknown
+func ParentValidationUnknown() Condition {
+	return Condition{
+		Kind:               ConditionKindParent,
+		Status:             corev1.ConditionFalse,
+		LastTransitionTime: metav1.Now(),
+		Reason:             ConditionReasonUnknown,
 	}
 }
