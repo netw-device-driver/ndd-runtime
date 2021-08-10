@@ -52,6 +52,7 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 		for k, x2 := range x {
 			fmt.Printf("ResolveLeafRefWithJSONObject map[string]interface{}, idx %d, lridx: %d\n k: %s, x2: %v\n l.LocalPath: %v\n", idx, lridx, k, x2, l.LocalPath)
 			if k == l.LocalPath.GetElem()[idx].GetName() {
+
 				// check if this is the last element/index in the path
 				if idx == len(l.LocalPath.GetElem())-1 {
 					// check if the element in the path has a key
@@ -235,7 +236,6 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 						}
 					}
 
-					
 				}
 			}
 		}
