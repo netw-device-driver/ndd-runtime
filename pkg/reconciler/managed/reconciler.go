@@ -364,7 +364,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			return reconcile.Result{Requeue: false}, nil
 		}
 		// Set validation status to unknown if the target is not found
-		managed.SetConditions(nddv1.ParentValidationUnknown(), nddv1.ExternalLeafRefValidationUnknown(), nddv1.ExternalLeafRefValidationUnknown())
+		managed.SetConditions(nddv1.ParentValidationUnknown(), nddv1.LocalLeafRefValidationUnknown(), nddv1.ExternalLeafRefValidationUnknown())
 		// set empty target
 		managed.SetTarget(make([]string, 0))
 		// if the target was not found it means the network node is not defined or not in a status
@@ -496,10 +496,10 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			}
 			log.Debug("local leafref validation failed", "error", errors.New("validation failed"))
 			record.Event(managed, event.Warning(reasonValidateLocalLeafRefFailed, errors.New("validation failed")))
-			managed.SetConditions(nddv1.InternalLeafRefValidationFailure(), nddv1.Unavailable(), nddv1.ReconcileSuccess())
+			managed.SetConditions(nddv1.LocalLeafRefValidationFailure(), nddv1.Unavailable(), nddv1.ReconcileSuccess())
 			return reconcile.Result{RequeueAfter: shortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
-		managed.SetConditions(nddv1.InternalLeafRefValidationSuccess())
+		managed.SetConditions(nddv1.LocalLeafRefValidationSuccess())
 	
 		externalLeafrefObservation, err := r.validator.ValidateExternalleafRef(ctx, managed, cfg)
 		if err != nil {

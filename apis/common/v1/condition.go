@@ -302,9 +302,9 @@ func TargetNotFound() Condition {
 	}
 }
 
-// InternalLeafRefValidationSuccess returns a condition that indicates
+// LocalLeafRefValidationSuccess returns a condition that indicates
 // the resource leafreference(s) are found or no leafrefs exist
-func InternalLeafRefValidationSuccess() Condition {
+func LocalLeafRefValidationSuccess() Condition {
 	return Condition{
 		Kind:               ConditionKindInternalLeafRef,
 		Status:             corev1.ConditionTrue,
@@ -313,9 +313,9 @@ func InternalLeafRefValidationSuccess() Condition {
 	}
 }
 
-// InternalLeafRefValidationFailure returns a condition that indicates
+// LocalLeafRefValidationFailure returns a condition that indicates
 // the resource leafreference(s) are missing
-func InternalLeafRefValidationFailure() Condition {
+func LocalLeafRefValidationFailure() Condition {
 	return Condition{
 		Kind:               ConditionKindInternalLeafRef,
 		Status:             corev1.ConditionFalse,
@@ -324,9 +324,9 @@ func InternalLeafRefValidationFailure() Condition {
 	}
 }
 
-// InternalLeafRefValidationUnknown returns a condition that indicates
+// LocalLeafRefValidationUnknown returns a condition that indicates
 // the internal leafref validation is unknown
-func InternalLeafRefValidationUnknown() Condition {
+func LocalLeafRefValidationUnknown() Condition {
 	return Condition{
 		Kind:               ConditionKindInternalLeafRef,
 		Status:             corev1.ConditionFalse,
