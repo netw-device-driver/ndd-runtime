@@ -237,12 +237,12 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 											return true
 										}
 									case float64:
+										fmt.Printf("a: %s, b: %s\n", fmt.Sprintf("%f", x), rlref.Value)
 										if fmt.Sprintf("%f", x) == rlref.Value {
 											return true
 										}
 									default:
 										fmt.Println(reflect.TypeOf(x))
-
 									}
 									// we should not return here since there can be multiple elements in the
 									// list and we need to exercise them all, the geenric return will take care of it
