@@ -62,7 +62,7 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 						// we use the generic return statement to return
 					} else {
 						// element in the path has no key
-						// return the value
+						/// return the value we have found the leafref
 						resolvedLeafRefs[lridx].PopulateLocalLeafRefValue(x2, idx)
 						// we use the generic return statement to return
 					}
@@ -97,7 +97,7 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 						}
 						// check if this is the last element/index in the path
 						if idx == len(l.LocalPath.GetElem())-1 {
-							// return the value
+							// return the value we have found the leafref
 							resolvedLeafRefs[lridx].PopulateLocalLeafRefValue(x3, idx)
 							// we use the generic return statement to return
 						} else {
@@ -130,19 +130,21 @@ func (rlref *ResolvedLeafRef) PopulateLocalLeafRefValue(x interface{}, idx int) 
 		for k := range rlref.LocalPath.GetElem()[idx].GetKey() {
 			rlref.LocalPath.GetElem()[idx].GetKey()[k] = x1
 		}
+		rlref.Resolved = true
 	case int:
 		rlref.Value = strconv.Itoa(int(x1))
 		// a leaf ref can only have 1 value, this is why this works
 		for k := range rlref.LocalPath.GetElem()[idx].GetKey() {
 			rlref.LocalPath.GetElem()[idx].GetKey()[k] = strconv.Itoa(int(x1))
 		}
-
+		rlref.Resolved = true
 	case float64:
 		rlref.Value = fmt.Sprintf("%f", x1)
 		// a leaf ref can only have 1 value, this is why this works
 		for k := range rlref.LocalPath.GetElem()[idx].GetKey() {
 			rlref.LocalPath.GetElem()[idx].GetKey()[k] = fmt.Sprintf("%f", x1)
 		}
+		rlref.Resolved = true
 	default:
 		// maybe there is another type we still have to process, TBD
 	}
