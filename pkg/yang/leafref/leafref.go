@@ -236,6 +236,10 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 										if strconv.Itoa(int(x)) == rlref.Value {
 											return true
 										}
+									case float64:
+										if fmt.Sprintf("%f", x) == rlref.Value {
+											return true
+										}
 									default:
 										fmt.Println(reflect.TypeOf(x))
 
