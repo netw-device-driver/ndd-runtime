@@ -18,6 +18,7 @@ package leafref
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -186,7 +187,7 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 				if idx == len(rlref.RemotePath.GetElem())-1 {
 					// check if the element in the path has a key
 					if len(rlref.RemotePath.GetElem()[idx].GetKey()) != 0 {
-						
+
 						// given the element has a key we need to go through the []interface{} part
 						return rlref.FindRemoteLeafRef(x2, idx)
 					} else {
@@ -226,8 +227,18 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 								if idx == len(rlref.RemotePath.GetElem())-1 {
 									// return the value
 									fmt.Printf("FindRemoteLeafRef []interface{} 3 idx: %d, k3: %v, x3: %v, rlref.Value: %v\n", idx, k3, x3, rlref.Value)
-									if x3 == rlref.Value {
-										return true
+									switch x := x3.(type) {
+									case string:
+										if string(x) == rlref.Value {
+											return true
+										}
+									case uint32:
+										if strconv.Itoa(int(x)) == rlref.Value {
+											return true
+										}
+									default:
+										fmt.Println(reflect.TypeOf(x))
+
 									}
 									// we should not return here since there can be multiple elements in the
 									// list and we need to exercise them all, the geenric return will take care of it
