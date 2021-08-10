@@ -299,8 +299,9 @@ func RemoveHierarchicalKeys(d []byte, hids []string) ([]byte, error) {
 
 	fmt.Printf("data before hierarchical key removal: %v\n", x)
 
-	for k := range x {
-		for _, h := range hids {
+	// we first go over hierarchical ids since when they are empty it optimizes the processing
+	for _, h := range hids {
+		for k := range x {
 			if k == h {
 				delete(x, k)
 			}
