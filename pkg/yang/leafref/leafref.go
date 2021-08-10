@@ -176,16 +176,17 @@ func (rlref *ResolvedLeafRef) PopulateRemoteLeafRefKey() {
 }
 
 func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found bool) {
-	fmt.Printf("FindRemoteLeafRef Entry: idx: %d, data: %v\n", idx, x1)
+	fmt.Printf("FindRemoteLeafRef Entry: idx: %d, data: %v\n, remotePath: %v\n", idx, x1, rlref.RemotePath)
 	switch x := x1.(type) {
 	case map[string]interface{}:
 		for k, x2 := range x {
+			fmt.Printf("FindRemoteLeafRef map[string]interface{} List with Key: idx: %d, data: %v\n", idx, x2)
 			if k == rlref.RemotePath.GetElem()[idx].GetName() {
 				// check if this is the last element/index in the path
 				if idx == len(rlref.RemotePath.GetElem())-1 {
 					// check if the element in the path has a key
 					if len(rlref.RemotePath.GetElem()[idx].GetKey()) != 0 {
-						fmt.Printf("FindRemoteLeafRef map[string]interface{} List with Key: idx: %d, data: %v\n", idx, x2)
+						
 						// given the element has a key we need to go through the []interface{} part
 						return rlref.FindRemoteLeafRef(x2, idx)
 					} else {

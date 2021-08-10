@@ -269,7 +269,7 @@ func ProcessLeafRef(e *yang.Entry, resfullPath string, activeResPath *config.Pat
 			// build a gnmi path and remove the first entry since the yang contains a duplicate path
 			localPath := XpathToGnmiPath(resfullPath, 1)
 			// the last element hould be a key in the previous element
-			localPath = TransformPathToLeafRefPath(localPath)
+			//localPath = TransformPathToLeafRefPath(localPath)
 
 			if strings.Contains(*GnmiPathToXPath(remotePath, false), *GnmiPathToXPath(activeResPath, false)) {
 				// this is a local leafref within the resource
