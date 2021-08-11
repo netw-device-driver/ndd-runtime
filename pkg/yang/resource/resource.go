@@ -273,3 +273,30 @@ type HeInfo struct {
 	Key  string `json:"key,omitempty"`
 	Type string `json:"type,omitempty"`
 }
+
+func (r *Resource) GetActualGnmiFullPath() *config.Path {
+	actPath := &config.Path{
+		Elem: findActualPathElemHierarchy(r),
+	}
+	actPath.Elem = actPath.Elem[1:(len(actPath.GetElem()))]
+	return actPath
+}
+
+func findActualPathElemHierarchy(r *Resource) []*config.PathElem {
+	if r.DependsOn != nil {
+		fp := findActualPathElemHierarchy(r.DependsOn)
+		pathElem := r.Path.GetElem()
+		if r.RootContainerEntry.Key != "" {
+			pathElem[len(r.Path.GetElem())-1].Key = make(map[string]string)
+			pathElem[len(r.Path.GetElem())-1].Key[r.RootContainerEntry.Key] = r.RootContainerEntry.Type
+		}
+		fp = append(fp, pathElem...)
+		return fp
+	}
+	pathElem := r.Path.GetElem()
+	if r.RootContainerEntry.Key != "" {
+		pathElem[len(r.Path.GetElem())-1].Key = make(map[string]string)
+		pathElem[len(r.Path.GetElem())-1].Key[r.RootContainerEntry.Key] = r.RootContainerEntry.Type
+	}
+	return pathElem
+}
