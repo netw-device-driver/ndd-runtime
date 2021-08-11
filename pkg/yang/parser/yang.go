@@ -19,7 +19,6 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	config "github.com/netw-device-driver/ndd-grpc/config/configpb"
