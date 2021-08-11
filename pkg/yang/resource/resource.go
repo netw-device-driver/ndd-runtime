@@ -30,6 +30,7 @@ import (
 
 type Resource struct {
 	Path               *config.Path                   // relative path from the resource; the absolute path is assembled using the resurce hierarchy with dependsOn
+	ActualPath         *config.Path                   // ActualPath is a relative path from the resource with the actual key information; the absolute path is assembled using the resurce hierarchy with dependsOn
 	DependsOn          *Resource                      // resource dependency
 	Excludes           []*config.Path                 // relative from the the resource
 	FileName           string                         // the filename the resource is using to render out the config
