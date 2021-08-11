@@ -69,7 +69,6 @@ func InitializePathElem(e *yang.Entry) *config.PathElem {
 		}
 		pathElem.Key[e.Key] = keyType
 		fmt.Printf("Key: %s, KeyType: %s\n", e.Key, keyType)
-		os.Exit(1)
 	}
 	return pathElem
 }
