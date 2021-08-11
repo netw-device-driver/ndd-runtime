@@ -19,6 +19,7 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	config "github.com/netw-device-driver/ndd-grpc/config/configpb"
@@ -67,6 +68,8 @@ func InitializePathElem(e *yang.Entry) *config.PathElem {
 			keyType = "string"
 		}
 		pathElem.Key[e.Key] = keyType
+		fmt.Printf("Key: %s, KeyType: %s\n", e.Key, keyType)
+		os.Exit(1)
 	}
 	return pathElem
 }
@@ -274,7 +277,7 @@ func ProcessLeafRef(e *yang.Entry, resfullPath string, activeResPath *config.Pat
 			if strings.Contains(*GnmiPathToXPath(remotePath, false), *GnmiPathToXPath(activeResPath, false)) {
 				// if the remotePath and the active Path match exactly we classify this in the external leafref category
 				// since we dont allow multiple elments of the same key in the same resource
-				// E.g. interface ethernet-1/1 which reference a lag should be resolve to another interface in 
+				// E.g. interface ethernet-1/1 which reference a lag should be resolve to another interface in
 				// another resource and hence this should be classified as an external leafref
 				if *GnmiPathToXPath(remotePath, false) != *GnmiPathToXPath(activeResPath, false) {
 					// this is a local leafref within the resource
