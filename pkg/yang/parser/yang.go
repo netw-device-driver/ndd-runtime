@@ -184,9 +184,9 @@ func CreateContainerEntry(e *yang.Entry, next, prev *container.Container) *conta
 		entry.PatternString = strings.ReplaceAll(pattern, "%", "") 
 		
 		if strings.Contains(pattern, "`") {
-			entry.PatternString = fmt.Sprintf("\"%s\"\n", entry.PatternString)
+			entry.PatternString = fmt.Sprintf("\"%s\"", entry.PatternString)
 		} else {
-			entry.PatternString = fmt.Sprintf("`%s`\n", entry.PatternString)
+			entry.PatternString = fmt.Sprintf("`%s`", entry.PatternString)
 		}
 	}
 
