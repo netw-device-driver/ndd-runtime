@@ -171,10 +171,10 @@ func CreateContainerEntry(e *yang.Entry, next, prev *container.Container) *conta
 	// pattern post processing
 	var pattern string
 	for i, p := range entry.Pattern {
-		if i == 0 {
+		if i == (len(entry.Pattern)-1) {
 			pattern += p
 		} else {
-			pattern += "|" + p
+			pattern += p + "|"
 		}
 	}
 	if len(pattern) > 0 {
