@@ -181,7 +181,13 @@ func CreateContainerEntry(e *yang.Entry, next, prev *container.Container) *conta
 		//pattern = strings.ReplaceAll(pattern, "@", "")
 		//pattern = strings.ReplaceAll(pattern, "#", "")
 		//pattern = strings.ReplaceAll(pattern, "$", "")
-		entry.PatternString = strings.ReplaceAll(pattern, "%", "")
+		entry.PatternString = strings.ReplaceAll(pattern, "%", "") 
+		
+		if strings.Contains(pattern, "`") {
+			entry.PatternString = fmt.Sprintf("\"%s\"\n", entry.PatternString)
+		} else {
+			entry.PatternString = fmt.Sprintf("`%s`\n", entry.PatternString)
+		}
 	}
 
 	// enum post processing
