@@ -171,7 +171,8 @@ func CreateContainerEntry(e *yang.Entry, next, prev *container.Container) *conta
 	// pattern post processing
 	var pattern string
 	for i, p := range entry.Pattern {
-		if i == (len(entry.Pattern)-1) {
+		fmt.Printf("Pattern: %s last\n", p)
+		if i == (len(entry.Pattern) - 1) {
 			pattern += p
 		} else {
 			pattern += p + "|"
@@ -181,8 +182,8 @@ func CreateContainerEntry(e *yang.Entry, next, prev *container.Container) *conta
 		//pattern = strings.ReplaceAll(pattern, "@", "")
 		//pattern = strings.ReplaceAll(pattern, "#", "")
 		//pattern = strings.ReplaceAll(pattern, "$", "")
-		entry.PatternString = strings.ReplaceAll(pattern, "%", "") 
-		
+		entry.PatternString = strings.ReplaceAll(pattern, "%", "")
+
 		if strings.Contains(pattern, "`") {
 			entry.PatternString = fmt.Sprintf("\"%s\"", entry.PatternString)
 		} else {
