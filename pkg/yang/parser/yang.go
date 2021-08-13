@@ -179,6 +179,7 @@ func CreateContainerEntry(e *yang.Entry, next, prev *container.Container) *conta
 		}
 	}
 	if len(pattern) > 0 {
+		fmt.Printf("Pattern orig: %srig\n", pattern)
 		//pattern = strings.ReplaceAll(pattern, "@", "")
 		//pattern = strings.ReplaceAll(pattern, "#", "")
 		//pattern = strings.ReplaceAll(pattern, "$", "")
@@ -189,6 +190,7 @@ func CreateContainerEntry(e *yang.Entry, next, prev *container.Container) *conta
 		} else {
 			entry.PatternString = fmt.Sprintf("`%s`", entry.PatternString)
 		}
+		fmt.Printf("Pattern processed: %srocessed\n", pattern)
 	}
 
 	// enum post processing
