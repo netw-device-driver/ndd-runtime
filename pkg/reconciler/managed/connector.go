@@ -19,6 +19,7 @@ package managed
 import (
 	"context"
 
+	config "github.com/netw-device-driver/ndd-grpc/config/configpb"
 	"github.com/netw-device-driver/ndd-runtime/pkg/resource"
 )
 
@@ -75,17 +76,21 @@ type ExternalClient interface {
 
 	// GetConfig returns the full configuration of the network node
 	GetConfig(ctx context.Context) ([]byte, error)
+
+	// GetResourceName returns the resource that matches the path
+	GetResourceName(ctx context.Context, path *config.Path) (string, error)
 }
 
 // ExternalClientFns are a series of functions that satisfy the ExternalClient
 // interface.
 type ExternalClientFns struct {
-	ObserveFn                  func(ctx context.Context, mg resource.Managed) (ExternalObservation, error)
-	CreateFn                   func(ctx context.Context, mg resource.Managed) (ExternalCreation, error)
-	UpdateFn                   func(ctx context.Context, mg resource.Managed) (ExternalUpdate, error)
-	DeleteFn                   func(ctx context.Context, mg resource.Managed) error
-	GetTargetFn                func() []string
-	GetConfigFn                func(ctx context.Context) ([]byte, error)
+	ObserveFn         func(ctx context.Context, mg resource.Managed) (ExternalObservation, error)
+	CreateFn          func(ctx context.Context, mg resource.Managed) (ExternalCreation, error)
+	UpdateFn          func(ctx context.Context, mg resource.Managed) (ExternalUpdate, error)
+	DeleteFn          func(ctx context.Context, mg resource.Managed) error
+	GetTargetFn       func() []string
+	GetConfigFn       func(ctx context.Context) ([]byte, error)
+	GetResourceNameFn func(ctx context.Context, path *config.Path) (string, error)
 }
 
 // Observe the external resource the supplied Managed resource represents, if
@@ -120,6 +125,11 @@ func (e ExternalClientFns) GetTarget() []string {
 // GetConfig returns the full configuration of the network node
 func (e ExternalClientFns) GetConfig(ctx context.Context) ([]byte, error) {
 	return e.GetConfigFn(ctx)
+}
+
+// GetResourceName returns the resource matching the path
+func (e ExternalClientFns) GetResourceName(ctx context.Context, path *config.Path) (string, error) {
+	return e.GetResourceName(ctx, path)
 }
 
 // A NopConnecter does nothing.
@@ -157,6 +167,11 @@ func (c *NopClient) GetTarget() []string { return make([]string, 0) }
 // GetConfig returns the full configuration of the network node
 func (c *NopClient) GetConfig(ctx context.Context) ([]byte, error) {
 	return make([]byte, 0), nil
+}
+
+// GetResourceName returns the resource matching the path
+func (c *NopClient) GetResourceName(ctx context.Context, path *config.Path) (string, error) {
+	return "", nil
 }
 
 // An ExternalObservation is the result of an observation of an external
@@ -217,5 +232,4 @@ type ExternalCreation struct {
 
 // An ExternalUpdate is the result of an update to an external resource.
 type ExternalUpdate struct {
-
 }
