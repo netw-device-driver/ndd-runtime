@@ -129,7 +129,7 @@ func (e ExternalClientFns) GetConfig(ctx context.Context) ([]byte, error) {
 
 // GetResourceName returns the resource matching the path
 func (e ExternalClientFns) GetResourceName(ctx context.Context, path *config.Path) (string, error) {
-	return e.GetResourceName(ctx, path)
+	return e.GetResourceNameFn(ctx, path)
 }
 
 // A NopConnecter does nothing.
@@ -211,7 +211,7 @@ type ExternalObservation struct {
 	// i.e. returning new connection details will have no affect on old details
 	// unless an existing key is overwritten. Crossplane may publish these
 	// credentials to a store (e.g. a Secret).
-	ConnectionDetails ConnectionDetails
+	//ConnectionDetails ConnectionDetails
 }
 
 // An ExternalCreation is the result of the creation of an external resource.

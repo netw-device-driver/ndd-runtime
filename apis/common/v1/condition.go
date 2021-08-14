@@ -19,6 +19,7 @@ package v1
 import (
 	"sort"
 
+	"github.com/netw-device-driver/ndd-runtime/pkg/yang/leafref"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -88,6 +89,12 @@ type Condition struct {
 	// one status to another, if any.
 	// +optional
 	Message string `json:"message,omitempty"`
+
+	// A Resolved leafref
+	ResolvedLeafRefs []*leafref.ResolvedLeafRef `json:"resolvedLeafRefs,omitempty"`
+
+	// ExternalResourceNames for external leafrefs
+	ExternalResourceNames []string `json:"externalResourceNames,omitempty"`
 }
 
 // Equal returns true if the condition is identical to the supplied condition,
@@ -105,6 +112,22 @@ func (c Condition) WithMessage(msg string) Condition {
 	c.Message = msg
 	return c
 }
+
+// WithResolvedLeafRefs returns a condition by adding the provided resolvedLeafRefs 
+// to an existing condition.
+func (c Condition) WithResolvedLeafRefs(r []*leafref.ResolvedLeafRef) Condition {
+	c.ResolvedLeafRefs = r
+	return c
+}
+
+// WithResolvedLeafRefs returns a condition by adding the provided resolvedLeafRefs 
+// to an existing condition.
+func (c Condition) WithExternalResourceNames(r []string) Condition {
+	c.ExternalResourceNames = r
+	return c
+}
+
+
 
 // A ConditionedStatus reflects the observed status of a resource. Only
 // one condition of each kind may exist.

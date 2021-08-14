@@ -131,4 +131,5 @@ type NetworkNodeUsageList interface {
 type Finalizer interface {
 	AddFinalizer(ctx context.Context, obj Object) error
 	RemoveFinalizer(ctx context.Context, obj Object) error
+	HasOtherFinalizer(ctx context.Context, obj Object) (bool, error)
 }

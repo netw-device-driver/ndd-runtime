@@ -166,10 +166,20 @@ func (a *APIFinalizer) RemoveFinalizer(ctx context.Context, obj Object) error {
 	return errors.Wrap(IgnoreNotFound(a.client.Update(ctx, obj)), errUpdateObject)
 }
 
+func (a *APIFinalizer) HasOtherFinalizer(ctx context.Context, obj Object) (bool, error) {
+	for _, f := range obj.GetFinalizers() {
+		if f != a.finalizer {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // A FinalizerFns satisfy the Finalizer interface.
 type FinalizerFns struct {
 	AddFinalizerFn    func(ctx context.Context, obj Object) error
 	RemoveFinalizerFn func(ctx context.Context, obj Object) error
+	HasOtherFinalizerFn func(ctx context.Context, obj Object) (bool, error)
 }
 
 // AddFinalizer to the supplied resource.
@@ -180,4 +190,9 @@ func (f FinalizerFns) AddFinalizer(ctx context.Context, obj Object) error {
 // RemoveFinalizer from the supplied resource.
 func (f FinalizerFns) RemoveFinalizer(ctx context.Context, obj Object) error {
 	return f.RemoveFinalizerFn(ctx, obj)
+}
+
+// RemoveFinalizer from the supplied resource.
+func (f FinalizerFns) HasOtherFinalizer(ctx context.Context, obj Object) (bool, error) {
+	return f.HasOtherFinalizerFn(ctx, obj)
 }

@@ -26,15 +26,15 @@ import (
 )
 
 type LeafRef struct {
-	LocalPath  *config.Path
-	RemotePath *config.Path
+	LocalPath  *config.Path `json:"localPath,omitempty"`
+	RemotePath *config.Path `json:"remotePath,omitempty"`
 }
 
 type ResolvedLeafRef struct {
-	LocalPath  *config.Path
-	RemotePath *config.Path
-	Value      string
-	Resolved   bool
+	LocalPath  *config.Path `json:"localPath,omitempty"`
+	RemotePath *config.Path `json:"remotePath,omitempty"`
+	Value      string       `json:"value,omitempty"`
+	Resolved   bool         `json:"resolved,omitempty"`
 }
 
 func NewLeafReaf(lPath, rPath *config.Path) *LeafRef {
