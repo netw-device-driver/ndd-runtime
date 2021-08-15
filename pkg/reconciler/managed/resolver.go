@@ -22,20 +22,23 @@ import (
 	"github.com/netw-device-driver/ndd-runtime/pkg/resource"
 )
 
-// A ReferenceResolver resolves references to other managed resources.
-type ReferenceResolver interface {
-	// ResolveReferences resolves all fields in the supplied managed resource
-	// that are references to other managed resources by updating corresponding
-	// fields, for example setting spec.network to the Network resource
-	// specified by spec.networkRef.name.
-	ResolveReferences(ctx context.Context, mg resource.Managed) error
+// A Resolver resolves references to other managed resources.
+type Resolver interface {
+	GetManagedResource(ctx context.Context, resourceName string) (resource.Managed, error)
 }
 
-// A ReferenceResolverFn is a function that satisfies the
-// ReferenceResolver interface.
-type ReferenceResolverFn func(context.Context, resource.Managed) error
+type resolverFn struct {
+	// A GetManagedResourceFn is a function that satisfies the GetManagedResource interface.
+	GetManagedResourceFn func(ctx context.Context, resourceName string) (resource.Managed, error)
+}
 
-// ResolveReferences calls ReferenceResolverFn function
-func (m ReferenceResolverFn) ResolveReferences(ctx context.Context, mg resource.Managed) error {
-	return m(ctx, mg)
+// GetManagedResource calls ReferenceResolverFn function
+func (r resolverFn) GetManagedResource(ctx context.Context, resourceName string) (resource.Managed, error) {
+	return r.GetManagedResourceFn(ctx, resourceName)
+}
+
+type NopResolver struct{}
+
+func (e *NopResolver) GetManagedResource(ctx context.Context, resourceName string) (resource.Managed, error) {
+	return nil, nil
 }

@@ -89,7 +89,6 @@ type patch struct{ from client.Object }
 func (p *patch) Type() types.PatchType                { return types.MergePatchType }
 func (p *patch) Data(_ client.Object) ([]byte, error) { return json.Marshal(p.from) }
 
-
 // An APIUpdatingApplicator applies changes to an object by either creating or
 // updating it in a Kubernetes API server.
 type APIUpdatingApplicator struct {
@@ -166,6 +165,24 @@ func (a *APIFinalizer) RemoveFinalizer(ctx context.Context, obj Object) error {
 	return errors.Wrap(IgnoreNotFound(a.client.Update(ctx, obj)), errUpdateObject)
 }
 
+// AddFinalizer to the supplied Managed resource.
+func (a *APIFinalizer) AddFinalizerString(ctx context.Context, obj Object, finalizerString string) error {
+	if meta.FinalizerExists(obj, finalizerString) {
+		return nil
+	}
+	meta.AddFinalizer(obj, a.finalizer)
+	return errors.Wrap(a.client.Update(ctx, obj), errUpdateObject)
+}
+
+// RemoveFinalizer from the supplied Managed resource.
+func (a *APIFinalizer) RemoveFinalizerString(ctx context.Context, obj Object, finalizerString string) error {
+	if !meta.FinalizerExists(obj, finalizerString) {
+		return nil
+	}
+	meta.RemoveFinalizer(obj, finalizerString)
+	return errors.Wrap(IgnoreNotFound(a.client.Update(ctx, obj)), errUpdateObject)
+}
+
 func (a *APIFinalizer) HasOtherFinalizer(ctx context.Context, obj Object) (bool, error) {
 	for _, f := range obj.GetFinalizers() {
 		if f != a.finalizer {
@@ -177,9 +194,11 @@ func (a *APIFinalizer) HasOtherFinalizer(ctx context.Context, obj Object) (bool,
 
 // A FinalizerFns satisfy the Finalizer interface.
 type FinalizerFns struct {
-	AddFinalizerFn    func(ctx context.Context, obj Object) error
-	RemoveFinalizerFn func(ctx context.Context, obj Object) error
-	HasOtherFinalizerFn func(ctx context.Context, obj Object) (bool, error)
+	AddFinalizerFn          func(ctx context.Context, obj Object) error
+	RemoveFinalizerFn       func(ctx context.Context, obj Object) error
+	HasOtherFinalizerFn     func(ctx context.Context, obj Object) (bool, error)
+	AddFinalizerStringFn    func(ctx context.Context, obj Object, finalizerString string) error
+	RemoveFinalizerStringFn func(ctx context.Context, obj Object, finalizerString string) error
 }
 
 // AddFinalizer to the supplied resource.
@@ -195,4 +214,14 @@ func (f FinalizerFns) RemoveFinalizer(ctx context.Context, obj Object) error {
 // RemoveFinalizer from the supplied resource.
 func (f FinalizerFns) HasOtherFinalizer(ctx context.Context, obj Object) (bool, error) {
 	return f.HasOtherFinalizerFn(ctx, obj)
+}
+
+// AddFinalizer to the supplied resource.
+func (f FinalizerFns) AddFinalizerString(ctx context.Context, obj Object, finalizerString string) error {
+	return f.AddFinalizerStringFn(ctx, obj, finalizerString)
+}
+
+// RemoveFinalizer from the supplied resource.
+func (f FinalizerFns) RemoveFinalizerString(ctx context.Context, obj Object, finalizerString string) error {
+	return f.RemoveFinalizerStringFn(ctx, obj, finalizerString)
 }

@@ -132,4 +132,6 @@ type Finalizer interface {
 	AddFinalizer(ctx context.Context, obj Object) error
 	RemoveFinalizer(ctx context.Context, obj Object) error
 	HasOtherFinalizer(ctx context.Context, obj Object) (bool, error)
+	AddFinalizerString(ctx context.Context, obj Object, finalizerString string) error
+	RemoveFinalizerString(ctx context.Context, obj Object, finalizerString string) error
 }
