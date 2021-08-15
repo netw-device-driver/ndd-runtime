@@ -32,3 +32,13 @@ func Int64Ptr(i int64) *int64 { return &i }
 
 // Uint32Ptr return pointer to uint32
 func Uint32Ptr(ui uint32) *uint32 { return &ui }
+
+
+func RemoveString(slice []string, s string) (result []string) {
+	for _, v := range slice {
+		if v != s {
+			result = append(result, v)
+		}
+	}
+	return result
+}

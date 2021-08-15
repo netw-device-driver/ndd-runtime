@@ -28,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/netw-device-driver/ndd-runtime/pkg/meta"
+	"github.com/netw-device-driver/ndd-runtime/pkg/utils"
 )
 
 // Error strings.
@@ -169,20 +170,33 @@ func (a *APIFinalizer) RemoveFinalizer(ctx context.Context, obj Object) error {
 // AddFinalizer to the supplied Managed resource.
 func (a *APIFinalizer) AddFinalizerString(ctx context.Context, obj Object, finalizerString string) error {
 	fmt.Printf("AddFinalizerString finalizerString: %s\n", finalizerString)
-	fmt.Printf("AddFinalizerString object: %v\n", obj)
-	if meta.FinalizerExists(obj, finalizerString) {
-		return nil
+	f := obj.GetFinalizers()
+	found := false
+	for _, ff := range f {
+		if ff == finalizerString {
+			found = true
+			return nil
+		}
 	}
-	meta.AddFinalizer(obj, a.finalizer)
+	if !found {
+		f = append(f, finalizerString)
+		obj.SetFinalizers(f)
+	}
+	fmt.Printf("AddFinalizerString finalizers end: %v\n", obj.GetFinalizers())
 	return errors.Wrap(a.client.Update(ctx, obj), errUpdateObject)
 }
 
 // RemoveFinalizer from the supplied Managed resource.
 func (a *APIFinalizer) RemoveFinalizerString(ctx context.Context, obj Object, finalizerString string) error {
-	if !meta.FinalizerExists(obj, finalizerString) {
-		return nil
+	f := obj.GetFinalizers()
+	fmt.Printf("RemoveFinalizerString finalizers start: %v\n", obj.GetFinalizers())
+	for _, ff := range f {
+		if ff == finalizerString {
+			f = utils.RemoveString(f, ff)
+			obj.SetFinalizers(f)
+		}
 	}
-	meta.RemoveFinalizer(obj, finalizerString)
+	fmt.Printf("RemoveFinalizerString finalizers end: %v\n", obj.GetFinalizers())
 	return errors.Wrap(IgnoreNotFound(a.client.Update(ctx, obj)), errUpdateObject)
 }
 
