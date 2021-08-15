@@ -306,7 +306,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		// if other finalizer exists we cananot delete the resource and we have to requeue until the
 		// resource get deleted
 		if hasOtherFinalizer {
-			return reconcile.Result{RequeueAfter: shortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
 
 		// remove the finalizer from the external resources before deleting the finalizer from the local resource
@@ -407,7 +407,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			// if other finalizer exists we cananot delete the resource and we have to requeue until the
 			// resource get deleted
 			if hasOtherFinalizer {
-				return reconcile.Result{RequeueAfter: shortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+				return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
 
 			// remove the finalizer from the external resources before deleting the finalizer from the local resource
@@ -542,7 +542,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		// if other finalizer exists we cananot delete the resource and we have to requeue until the
 		// resource get deleted
 		if hasOtherFinalizer {
-			return reconcile.Result{RequeueAfter: shortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
 
 		// remove the finalizer from the external resources before deleting the finalizer from the local resource
