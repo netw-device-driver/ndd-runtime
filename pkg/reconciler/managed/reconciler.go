@@ -699,7 +699,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	externalResourceNames := make([]string, 0)
 	log.Debug("External Leafref Validation", "resolved leafref", externalLeafrefObservation.ResolvedLeafRefs)
 	for _, resolvedLeafRef := range externalLeafrefObservation.ResolvedLeafRefs {
-		externalResourceName, err := external.GetResourceName(externalCtx, resolvedLeafRef.RemotePath)
+		externalResourceName, err := external.GetResourceName(externalCtx, &resolvedLeafRef.RemotePath)
 		if err != nil {
 			log.Debug("Cannot get resource name", "error", err)
 			record.Event(managed, event.Warning(reasonCannotGetResourceName, err))

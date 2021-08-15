@@ -78,7 +78,7 @@ type ExternalClient interface {
 	GetConfig(ctx context.Context) ([]byte, error)
 
 	// GetResourceName returns the resource that matches the path
-	GetResourceName(ctx context.Context, path config.Path) (string, error)
+	GetResourceName(ctx context.Context, path *config.Path) (string, error)
 }
 
 // ExternalClientFns are a series of functions that satisfy the ExternalClient
@@ -170,7 +170,7 @@ func (c *NopClient) GetConfig(ctx context.Context) ([]byte, error) {
 }
 
 // GetResourceName returns the resource matching the path
-func (c *NopClient) GetResourceName(ctx context.Context, path config.Path) (string, error) {
+func (c *NopClient) GetResourceName(ctx context.Context, path *config.Path) (string, error) {
 	return "", nil
 }
 
