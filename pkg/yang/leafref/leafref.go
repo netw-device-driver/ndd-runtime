@@ -91,27 +91,31 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 			case map[string]interface{}:
 				for k3, x3 := range x2 {
 					fmt.Printf("ResolveLeafRefWithJSONObject []interface{}, idx %d, lridx: %d\n l.LocalPath: %v\n n: %d, k3: %s, x3: %v\n  resolvedLeafRef: %v\n", idx, lridx, l.LocalPath, n, k3, x3, resolvedLeafRefs)
-					if k3 == l.LocalPath.GetElem()[idx].GetName() {
-						if n > 0 {
-							resolvedLeafRefs = append(resolvedLeafRefs, resolvedLeafRefsOrig)
-							lridx++
-						}
-						// check if this is the last element/index in the path
-						if idx == len(l.LocalPath.GetElem())-1 {
-							// return the value we have found the leafref
-							fmt.Printf("ResolveLeafRefWithJSONObject []interface{} last entry in localPath")
-							resolvedLeafRefs[lridx].PopulateLocalLeafRefValue(x3, idx)
-							// we use the generic return statement to return
-						} else {
-							// the value is always a string since it is part of map[string]interface{}
-							// since we are not at the end of the path we dont have leafRefValues and hence we dont need to Populate them
-							resolvedLeafRefs[lridx].PopulateLocalLeafRefKey(x3, idx)
-							// given that we can have multiple entries in the list we initialize a new index to increment independently
-							i := idx
-							i++
-							fmt.Printf("ResolveLeafRefWithJSONObject []interface{} NOT last entry in localPath")
-							resolvedLeafRefs = l.ResolveLeafRefWithJSONObject(x2, i, lridx, resolvedLeafRefs)
-							// we use the generic return statement to return
+					if len(l.LocalPath.GetElem()[idx].GetKey()) != 0 {
+						for k := range l.LocalPath.GetElem()[idx].GetKey() {
+							if k == k3 {
+								if n > 0 {
+									resolvedLeafRefs = append(resolvedLeafRefs, resolvedLeafRefsOrig)
+									lridx++
+								}
+								// check if this is the last element/index in the path
+								if idx == len(l.LocalPath.GetElem())-1 {
+									// return the value we have found the leafref
+									fmt.Printf("ResolveLeafRefWithJSONObject []interface{} last entry in localPath")
+									resolvedLeafRefs[lridx].PopulateLocalLeafRefValue(x3, idx)
+									// we use the generic return statement to return
+								} else {
+									// the value is always a string since it is part of map[string]interface{}
+									// since we are not at the end of the path we dont have leafRefValues and hence we dont need to Populate them
+									resolvedLeafRefs[lridx].PopulateLocalLeafRefKey(x3, idx)
+									// given that we can have multiple entries in the list we initialize a new index to increment independently
+									i := idx
+									i++
+									fmt.Printf("ResolveLeafRefWithJSONObject []interface{} NOT last entry in localPath")
+									resolvedLeafRefs = l.ResolveLeafRefWithJSONObject(x2, i, lridx, resolvedLeafRefs)
+									// we use the generic return statement to return
+								}
+							}
 						}
 					}
 				}
