@@ -84,7 +84,7 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 			}
 		}
 	case []interface{}:
-		resolvedLeafRefsOrig := resolvedLeafRefs[lridx]
+		resolvedLeafRefsOrig := *resolvedLeafRefs[lridx]
 		for n, v := range x {
 			fmt.Printf("ResolveLeafRefWithJSONObject []interface{}, idx %d, lridx: %d\n l.LocalPath: %v\n n: %d, v: %v\n , resolvedLeafRef: %v\n", idx, lridx, l.LocalPath, n, v, resolvedLeafRefs)
 			switch x2 := v.(type) {
@@ -95,7 +95,7 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 						for k := range l.LocalPath.GetElem()[idx].GetKey() {
 							if k == k3 {
 								if n > 0 {
-									resolvedLeafRefs = append(resolvedLeafRefs, resolvedLeafRefsOrig)
+									resolvedLeafRefs = append(resolvedLeafRefs, &resolvedLeafRefsOrig)
 									lridx++
 								}
 								// check if this is the last element/index in the path
@@ -154,6 +154,7 @@ func (rlref *ResolvedLeafRef) PopulateLocalLeafRefValue(x interface{}, idx int) 
 		rlref.Resolved = true
 	default:
 		// maybe there is another type we still have to process, TBD
+		fmt.Printf("PopulateLocalLeafRefValue: new type %v", x1)
 	}
 }
 
@@ -164,8 +165,21 @@ func (rlref *ResolvedLeafRef) PopulateLocalLeafRefKey(x interface{}, idx int) {
 		for k := range rlref.LocalPath.GetElem()[idx].GetKey() {
 			rlref.LocalPath.GetElem()[idx].GetKey()[k] = x1
 		}
+	case int:
+		rlref.Value = strconv.Itoa(int(x1))
+		// a leaf ref can only have 1 value, this is why this works
+		for k := range rlref.LocalPath.GetElem()[idx].GetKey() {
+			rlref.LocalPath.GetElem()[idx].GetKey()[k] = strconv.Itoa(int(x1))
+		}
+	case float64:
+		rlref.Value = fmt.Sprintf("%f", x1)
+		// a leaf ref can only have 1 value, this is why this works
+		for k := range rlref.LocalPath.GetElem()[idx].GetKey() {
+			rlref.LocalPath.GetElem()[idx].GetKey()[k] = fmt.Sprintf("%f", x1)
+		}
 	default:
-		// a key only has a string tyope, so we should never come here
+		// maybe there is another type we still have to process, TBD
+		fmt.Printf("PopulateLocalLeafRefKey: new type %v", x1)
 	}
 }
 
