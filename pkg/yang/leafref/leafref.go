@@ -26,18 +26,18 @@ import (
 )
 
 type LeafRef struct {
-	LocalPath  *config.Path `json:"localPath,omitempty"`
-	RemotePath *config.Path `json:"remotePath,omitempty"`
+	LocalPath  config.Path `json:"localPath,omitempty"`
+	RemotePath config.Path `json:"remotePath,omitempty"`
 }
 
 type ResolvedLeafRef struct {
-	LocalPath  *config.Path `json:"localPath,omitempty"`
-	RemotePath *config.Path `json:"remotePath,omitempty"`
-	Value      string       `json:"value,omitempty"`
-	Resolved   bool         `json:"resolved,omitempty"`
+	LocalPath  config.Path `json:"localPath,omitempty"`
+	RemotePath config.Path `json:"remotePath,omitempty"`
+	Value      string      `json:"value,omitempty"`
+	Resolved   bool        `json:"resolved,omitempty"`
 }
 
-func NewLeafReaf(lPath, rPath *config.Path) *LeafRef {
+func NewLeafReaf(lPath, rPath config.Path) *LeafRef {
 	return &LeafRef{
 		LocalPath:  lPath,
 		RemotePath: rPath,
@@ -46,17 +46,17 @@ func NewLeafReaf(lPath, rPath *config.Path) *LeafRef {
 
 // ResolveLeafRefWithJSONObject resolved the leafref in the data/object supplied via the path and returns the leafref values and leafref path augmnted with the data of the leaf reference
 // we can have multiple leafrefs in an object and hence we return a list with the leafref values and the leafref path (witht the Populateed data of the object)
-func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx int, resolvedLeafRefs []*ResolvedLeafRef) []*ResolvedLeafRef {
+func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx int, resolvedLeafRefs []ResolvedLeafRef) []ResolvedLeafRef {
 	fmt.Printf("ResolveLeafRefWithJSONObject entry, idx %d, lridx: %d\n  x1: %v\n", idx, lridx, x1)
 	for _, resolvedLeafRef := range resolvedLeafRefs {
-		fmt.Printf("  resolvedLeafRef: %v\n", *resolvedLeafRef)
+		fmt.Printf("  resolvedLeafRef: %v\n", resolvedLeafRef)
 	}
 	switch x := x1.(type) {
 	case map[string]interface{}:
 		for k, x2 := range x {
 			fmt.Printf("ResolveLeafRefWithJSONObject map[string]interface{}, idx %d, lridx: %d\n l.LocalPath: %v\n k: %s, x2: %v \n", idx, lridx, l.LocalPath, k, x2)
 			for _, resolvedLeafRef := range resolvedLeafRefs {
-				fmt.Printf("  resolvedLeafRef: %v\n", *resolvedLeafRef)
+				fmt.Printf("  resolvedLeafRef: %v\n", resolvedLeafRef)
 			}
 			if k == l.LocalPath.GetElem()[idx].GetName() {
 
@@ -90,25 +90,21 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 			}
 		}
 	case []interface{}:
-		resolvedLeafRefsOrig := *resolvedLeafRefs[lridx]
+		resolvedLeafRefsOrig := resolvedLeafRefs[lridx]
 		fmt.Printf("resolvedLeafRefsOrig: %v\n", resolvedLeafRefsOrig)
 		for n, v := range x {
-			fmt.Printf("ResolveLeafRefWithJSONObject []interface{}, idx %d, lridx: %d\n l.LocalPath: %v\n n: %d, v: %v\n", idx, lridx, l.LocalPath, n, v)
-			for _, resolvedLeafRef := range resolvedLeafRefs {
-				fmt.Printf("  resolvedLeafRef: %v\n", *resolvedLeafRef)
-			}
 			switch x2 := v.(type) {
 			case map[string]interface{}:
 				for k3, x3 := range x2 {
 					fmt.Printf("ResolveLeafRefWithJSONObject []interface{}, idx %d, lridx: %d\n l.LocalPath: %v\n n: %d, k3: %s, x3: %v\n ", idx, lridx, l.LocalPath, n, k3, x3)
 					for _, resolvedLeafRef := range resolvedLeafRefs {
-						fmt.Printf("  resolvedLeafRef: %v\n", *resolvedLeafRef)
+						fmt.Printf("  resolvedLeafRef: %v\n", resolvedLeafRef)
 					}
 					if len(l.LocalPath.GetElem()[idx].GetKey()) != 0 {
 						for k := range l.LocalPath.GetElem()[idx].GetKey() {
 							if k == k3 {
 								if n > 0 {
-									resolvedLeafRefs = append(resolvedLeafRefs, &resolvedLeafRefsOrig)
+									resolvedLeafRefs = append(resolvedLeafRefs, resolvedLeafRefsOrig)
 									lridx++
 								}
 								// check if this is the last element/index in the path
@@ -146,23 +142,29 @@ func (rlref *ResolvedLeafRef) PopulateLocalLeafRefValue(x interface{}, idx int) 
 	switch x1 := x.(type) {
 	case string:
 		rlref.Value = x1
-		// a leaf ref can only have 1 value, this is why this works
-		for k := range rlref.LocalPath.GetElem()[idx].GetKey() {
-			rlref.LocalPath.GetElem()[idx].GetKey()[k] = x1
+		// the value is typically resolved using rlref.Value
+		if len(rlref.LocalPath.GetElem()[idx].GetKey()) != 0 {
+			for k := range rlref.LocalPath.GetElem()[idx].GetKey() {
+				rlref.LocalPath.GetElem()[idx].GetKey()[k] = x1
+			}
 		}
 		rlref.Resolved = true
 	case int:
 		rlref.Value = strconv.Itoa(int(x1))
-		// a leaf ref can only have 1 value, this is why this works
-		for k := range rlref.LocalPath.GetElem()[idx].GetKey() {
-			rlref.LocalPath.GetElem()[idx].GetKey()[k] = strconv.Itoa(int(x1))
+		// the value is typically resolved using rlref.Value
+		if len(rlref.LocalPath.GetElem()[idx].GetKey()) != 0 {
+			for k := range rlref.LocalPath.GetElem()[idx].GetKey() {
+				rlref.LocalPath.GetElem()[idx].GetKey()[k] = strconv.Itoa(int(x1))
+			}
 		}
 		rlref.Resolved = true
 	case float64:
 		rlref.Value = fmt.Sprintf("%.0f", x1)
-		// a leaf ref can only have 1 value, this is why this works
-		for k := range rlref.LocalPath.GetElem()[idx].GetKey() {
-			rlref.LocalPath.GetElem()[idx].GetKey()[k] = fmt.Sprintf("%.0f", x1)
+		// the value is typically resolved using rlref.Value
+		if len(rlref.LocalPath.GetElem()[idx].GetKey()) != 0 {
+			for k := range rlref.LocalPath.GetElem()[idx].GetKey() {
+				rlref.LocalPath.GetElem()[idx].GetKey()[k] = fmt.Sprintf("%.0f", x1)
+			}
 		}
 		rlref.Resolved = true
 	default:

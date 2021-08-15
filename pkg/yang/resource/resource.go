@@ -90,14 +90,14 @@ func NewResource(opts ...Option) *Resource {
 	return r
 }
 
-func (r *Resource) AddLocalLeafRef(ll, rl *config.Path) {
+func (r *Resource) AddLocalLeafRef(ll, rl config.Path) {
 	r.LocalLeafRefs = append(r.LocalLeafRefs, &leafref.LeafRef{
 		LocalPath:  ll,
 		RemotePath: rl,
 	})
 }
 
-func (r *Resource) AddExternalLeafRef(ll, rl *config.Path) {
+func (r *Resource) AddExternalLeafRef(ll, rl config.Path) {
 	r.ExternalLeafRefs = append(r.ExternalLeafRefs, &leafref.LeafRef{
 		LocalPath:  ll,
 		RemotePath: rl,
