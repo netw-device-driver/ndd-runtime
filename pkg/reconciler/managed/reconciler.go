@@ -697,6 +697,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 	// get the external resources that match the external leafRefs
 	externalResourceNames := make([]string, 0)
+	log.Debug("External Leafref Validation", "resolved leafref", externalLeafrefObservation.ResolvedLeafRefs)
 	for _, resolvedLeafRef := range externalLeafrefObservation.ResolvedLeafRefs {
 		externalResourceName, err := external.GetResourceName(externalCtx, resolvedLeafRef.RemotePath)
 		if err != nil {
@@ -717,6 +718,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		}
 	}
 
+	log.Debug("External Leafref Validation", "externalResourceNames", externalResourceNames)
 	for _, externalResourceName := range externalResourceNames {
 		split := strings.Split(externalResourceName, ".")
 		emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
@@ -734,6 +736,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
+		log.Debug("External Leafref Validation", "External Managed Resource", emr)
 		if err := r.managed.AddFinalizerString(ctx, emr, managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
 			log.Debug("Cannot add finalizer to external resource", "error", err, "external resource", externalResourceName)
 			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
@@ -752,6 +755,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
+	log.Debug("Observation", "observation", observation)
 	if !observation.ResourceExists {
 		if _, err := external.Create(externalCtx, managed); err != nil {
 			// We'll hit this condition if the grpc connection fails.
