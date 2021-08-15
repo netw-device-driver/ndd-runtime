@@ -16,37 +16,40 @@ limitations under the License.
 
 package managed
 
-import "context"
+import (
+	"context"
 
+	"github.com/netw-device-driver/ndd-runtime/pkg/resource"
+)
 
-// the provider finalizer manages the finalizer for the external leafrefs accross all 
+// the provider finalizer manages the finalizer for the external leafrefs accross all
 // all managed resources of the provider
 type ProviderFinalizer interface {
-	AddFinalizer(ctx context.Context, name, namespace string) error
+	AddFinalizer(ctx context.Context, mg resource.Managed, leafRefname string) error
 
-	RemoveFinalizer(ctx context.Context, name, namespace string) error
+	RemoveFinalizer(ctx context.Context, mg resource.Managed, leafRefname string) error
 }
 
 type ProviderFinalizerFn struct {
-	AddFinalizerFn func(ctx context.Context, name, namespace string) error
+	AddFinalizerFn func(ctx context.Context, mg resource.Managed, leafRefname string) error
 
-	RemoveFinalizerFn func(ctx context.Context, name, namespace string) error
+	RemoveFinalizerFn func(ctx context.Context, mg resource.Managed, leafRefname string) error
 }
 
-func (e ProviderFinalizerFn) AddFinalizer(ctx context.Context, name, namespace string) error {
-	return e.AddFinalizerFn(ctx, name, namespace)
+func (e ProviderFinalizerFn) AddFinalizer(ctx context.Context, mg resource.Managed, leafRefname string) error {
+	return e.AddFinalizerFn(ctx, mg, leafRefname)
 }
 
-func (e ProviderFinalizerFn) RemoveFinalizer(ctx context.Context, name, namespace string) error {
-	return e.AddFinalizerFn(ctx, name, namespace)
+func (e ProviderFinalizerFn) RemoveFinalizer(ctx context.Context, mg resource.Managed, leafRefname string) error {
+	return e.AddFinalizerFn(ctx, mg, leafRefname)
 }
 
 type NopProviderFinalizer struct{}
 
-func (e *NopProviderFinalizer) AddFinalizer(ctx context.Context, name, namespace string) error {
+func (e *NopProviderFinalizer) AddFinalizer(ctx context.Context, mg resource.Managed, leafRefname string) error {
 	return nil
 }
 
-func (e *NopProviderFinalizer) RemoveFinalizer(ctx context.Context, name, namespace string) error {
+func (e *NopProviderFinalizer) RemoveFinalizer(ctx context.Context, mg resource.Managed, leafRefname string) error {
 	return nil
 }

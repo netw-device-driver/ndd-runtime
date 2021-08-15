@@ -329,7 +329,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 		// remove the finalizer from the external resources before deleting the finalizer from the local resource
 		for _, externalResourceName := range managed.GetCondition(nddv1.ConditionKindExternalLeafRef).ExternalResourceNames {
-			if err := r.providerFinalizer.RemoveFinalizer(ctx, externalResourceName, req.Namespace); err != nil {
+			if err := r.providerFinalizer.RemoveFinalizer(ctx, managed, externalResourceName); err != nil {
 				log.Debug("Cannot add global finalizer", "error", err, "externalResourceName", externalResourceName)
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
@@ -409,7 +409,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 			// remove the finalizer from the external resources before deleting the finalizer from the local resource
 			for _, externalResourceName := range managed.GetCondition(nddv1.ConditionKindExternalLeafRef).ExternalResourceNames {
-				if err := r.providerFinalizer.RemoveFinalizer(ctx, externalResourceName, req.Namespace); err != nil {
+				if err := r.providerFinalizer.RemoveFinalizer(ctx, managed, externalResourceName); err != nil {
 					log.Debug("Cannot add global finalizer", "error", err, "externalResourceName", externalResourceName)
 					managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
@@ -528,7 +528,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 		// remove the finalizer from the external resources before deleting the finalizer from the local resource
 		for _, externalResourceName := range managed.GetCondition(nddv1.ConditionKindExternalLeafRef).ExternalResourceNames {
-			if err := r.providerFinalizer.RemoveFinalizer(ctx, externalResourceName, req.Namespace); err != nil {
+			if err := r.providerFinalizer.RemoveFinalizer(ctx, managed, externalResourceName); err != nil {
 				log.Debug("Cannot add global finalizer", "error", err, "externalResourceName", externalResourceName)
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
@@ -683,7 +683,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	}
 
 	for _, externalResourceName := range externalResourceNames {
-		if err := r.providerFinalizer.AddFinalizer(ctx, externalResourceName, req.Namespace); err != nil {
+		if err := r.providerFinalizer.AddFinalizer(ctx, managed, externalResourceName); err != nil {
 			log.Debug("Cannot add global finalizer", "error", err, "externalResourceName", externalResourceName)
 			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
