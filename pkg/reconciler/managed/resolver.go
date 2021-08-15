@@ -27,13 +27,13 @@ type Resolver interface {
 	GetManagedResource(ctx context.Context, resourceName string) (resource.Managed, error)
 }
 
-type resolverFn struct {
+type ResolverFn struct {
 	// A GetManagedResourceFn is a function that satisfies the GetManagedResource interface.
 	GetManagedResourceFn func(ctx context.Context, resourceName string) (resource.Managed, error)
 }
 
 // GetManagedResource calls ReferenceResolverFn function
-func (r resolverFn) GetManagedResource(ctx context.Context, resourceName string) (resource.Managed, error) {
+func (r ResolverFn) GetManagedResource(ctx context.Context, resourceName string) (resource.Managed, error) {
 	return r.GetManagedResourceFn(ctx, resourceName)
 }
 

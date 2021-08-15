@@ -311,7 +311,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 		// remove the finalizer from the external resources before deleting the finalizer from the local resource
 		for _, externalResourceName := range managed.GetCondition(nddv1.ConditionKindExternalLeafRef).ExternalResourceNames {
-			emr, err := r.resolver.GetManagedResource(ctx, externalResourceName)
+			split := strings.Split(externalResourceName, ".")
+			emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
 			if err != nil {
 				log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
@@ -319,7 +320,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			}
 			key := types.NamespacedName{
 				Namespace: managed.GetNamespace(),
-				Name:      externalResourceName,
+				Name:      split[len(split)-1],
 			}
 			if err := r.client.Get(ctx, key, emr); err != nil {
 				log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
@@ -411,7 +412,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 			// remove the finalizer from the external resources before deleting the finalizer from the local resource
 			for _, externalResourceName := range managed.GetCondition(nddv1.ConditionKindExternalLeafRef).ExternalResourceNames {
-				emr, err := r.resolver.GetManagedResource(ctx, externalResourceName)
+				split := strings.Split(externalResourceName, ".")
+				emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
 				if err != nil {
 					log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
 					managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
@@ -419,7 +421,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 				}
 				key := types.NamespacedName{
 					Namespace: managed.GetNamespace(),
-					Name:      externalResourceName,
+					Name:      split[len(split)-1],
 				}
 				if err := r.client.Get(ctx, key, emr); err != nil {
 					log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
@@ -545,7 +547,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 		// remove the finalizer from the external resources before deleting the finalizer from the local resource
 		for _, externalResourceName := range managed.GetCondition(nddv1.ConditionKindExternalLeafRef).ExternalResourceNames {
-			emr, err := r.resolver.GetManagedResource(ctx, externalResourceName)
+			split := strings.Split(externalResourceName, ".")
+			emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
 			if err != nil {
 				log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
@@ -553,7 +556,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			}
 			key := types.NamespacedName{
 				Namespace: managed.GetNamespace(),
-				Name:      externalResourceName,
+				Name:      split[len(split)-1],
 			}
 			if err := r.client.Get(ctx, key, emr); err != nil {
 				log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
@@ -715,7 +718,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	}
 
 	for _, externalResourceName := range externalResourceNames {
-		emr, err := r.resolver.GetManagedResource(ctx, externalResourceName)
+		split := strings.Split(externalResourceName, ".")
+		emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
 		if err != nil {
 			log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
 			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
@@ -723,7 +727,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		}
 		key := types.NamespacedName{
 			Namespace: managed.GetNamespace(),
-			Name:      externalResourceName,
+			Name:      split[len(split)-1],
 		}
 		if err := r.client.Get(ctx, key, emr); err != nil {
 			log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
