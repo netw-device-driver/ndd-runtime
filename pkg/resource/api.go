@@ -19,6 +19,7 @@ package resource
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/pkg/errors"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
@@ -167,6 +168,8 @@ func (a *APIFinalizer) RemoveFinalizer(ctx context.Context, obj Object) error {
 
 // AddFinalizer to the supplied Managed resource.
 func (a *APIFinalizer) AddFinalizerString(ctx context.Context, obj Object, finalizerString string) error {
+	fmt.Printf("AddFinalizerString finalizerString: %s\n", finalizerString)
+	fmt.Printf("AddFinalizerString object: %v\n", obj)
 	if meta.FinalizerExists(obj, finalizerString) {
 		return nil
 	}
