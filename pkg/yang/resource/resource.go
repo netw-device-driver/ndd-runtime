@@ -17,6 +17,7 @@ limitations under the License.
 package resource
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -94,8 +95,10 @@ func (r *Resource) AddLocalLeafRef(ll, rl *config.Path) {
 	// add key entries to local leafrefs
 	for _, llpElem := range ll.GetElem() {
 		for _, c := range r.ContainerList {
+			fmt.Printf(" Resource AddLocalLeafRef llpElem.GetName(): %s, ContainerName: %s\n", c.Name, llpElem.GetName())
 			if c.Name == llpElem.GetName() {
 				for _, e := range c.Entries {
+					fmt.Printf(" Resource AddLocalLeafRef llpElem.GetName(): %s, ContainerName: %s, ContainerEntryName: %s\n", c.Name, llpElem.GetName(), e.GetName())
 					if e.GetName() == llpElem.GetName() {
 						if e.GetKey() != "" {
 							llpElem.Key = make(map[string]string)
