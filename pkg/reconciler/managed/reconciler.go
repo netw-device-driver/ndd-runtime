@@ -519,31 +519,6 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
 
-		// remove the finalizer from the external resources before deleting the finalizer from the local resource
-		for _, externalResourceName := range managed.GetCondition(nddv1.ConditionKindExternalLeafRef).ExternalResourceNames {
-			split := strings.Split(externalResourceName, ".")
-			emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
-			if err != nil {
-				log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
-				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
-				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-			}
-			key := types.NamespacedName{
-				Namespace: managed.GetNamespace(),
-				Name:      split[len(split)-1],
-			}
-			if err := r.client.Get(ctx, key, emr); err != nil {
-				log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
-				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
-				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-			}
-			if err := r.managed.RemoveFinalizerString(ctx, emr, managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
-				log.Debug("Cannot add finalizer to external resource", "error", err, "external resource", externalResourceName)
-				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
-				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-			}
-		}
-
 		// We'll only reach this point if deletion policy is not orphan, so we
 		// are safe to call external deletion if external resource exists.
 		if observation.ResourceExists {
@@ -571,6 +546,31 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			record.Event(managed, event.Normal(reasonDeleted, "Successfully requested deletion of external resource"))
 			managed.SetConditions(nddv1.ReconcileSuccess())
 			return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		}
+
+		// remove the finalizer from the external resources before deleting the finalizer from the local resource
+		for _, externalResourceName := range managed.GetCondition(nddv1.ConditionKindExternalLeafRef).ExternalResourceNames {
+			split := strings.Split(externalResourceName, ".")
+			emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
+			if err != nil {
+				log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
+				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			}
+			key := types.NamespacedName{
+				Namespace: managed.GetNamespace(),
+				Name:      split[len(split)-1],
+			}
+			if err := r.client.Get(ctx, key, emr); err != nil {
+				log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
+				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			}
+			if err := r.managed.RemoveFinalizerString(ctx, emr, managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
+				log.Debug("Cannot remove finalizer to external resource", "error", err, "external resource", externalResourceName)
+				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			}
 		}
 
 		if err := r.managed.RemoveFinalizer(ctx, managed); err != nil {
