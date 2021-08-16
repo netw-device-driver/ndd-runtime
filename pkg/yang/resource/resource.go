@@ -119,10 +119,10 @@ func (r *Resource) AddExternalLeafRef(ll, rl *config.Path) {
 	// add key entries to local leafrefs
 	for _, llpElem := range ll.GetElem() {
 		for _, c := range r.ContainerList {
-			fmt.Printf(" Resource AddExternalLeafRef llpElem.GetName(): %s, ContainerName: %s\n", c.Name, llpElem.GetName())
+			fmt.Printf(" Resource AddExternalLeafRef llpElem.GetName(): %s, ContainerName: %s\n", llpElem.GetName(), c.Name)
 			if c.Name == llpElem.GetName() {
 				for _, e := range c.Entries {
-					fmt.Printf(" Resource AddLocalLeafRef llpElem.GetName(): %s, ContainerName: %s, ContainerEntryName: %s\n", c.Name, llpElem.GetName(), e.GetName())
+					fmt.Printf(" Resource AddExternalLeafRef llpElem.GetName(): %s, ContainerName: %s, ContainerEntryName: %s\n", llpElem.GetName(), c.Name, e.GetName())
 					if e.GetName() == llpElem.GetName() {
 						if e.GetKey() != "" {
 							llpElem.Key = make(map[string]string)
