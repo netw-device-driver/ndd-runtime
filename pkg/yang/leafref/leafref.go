@@ -37,6 +37,31 @@ type ResolvedLeafRef struct {
 	Resolved   bool         `json:"resolved,omitempty"`
 }
 
+func (rlref *ResolvedLeafRef) DeepCopy() *ResolvedLeafRef {
+	if rlref == nil {
+		return nil
+	}
+	out := new(ResolvedLeafRef)
+	rlref.DeepCopyInto(out)
+	return out
+}
+
+func (rlref *ResolvedLeafRef) DeepCopyInto(out *ResolvedLeafRef){
+	*out = *rlref
+	if rlref.LocalPath != nil {
+		in, out := &rlref.LocalPath, &out.LocalPath
+		*out = new(config.Path)
+		(*in).DeepCopyInto(*out)
+	}
+	if rlref.RemotePath != nil {
+		in, out := &rlref.RemotePath, &out.RemotePath
+		*out = new(config.Path)
+		(*in).DeepCopyInto(*out)
+	}
+	out.Resolved = false
+	out.Value = ""
+}
+
 func NewLeafReaf(lPath, rPath *config.Path) *LeafRef {
 	return &LeafRef{
 		LocalPath:  lPath,
@@ -136,33 +161,6 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 		// When we come here we have no resolution
 	}
 	return resolvedLeafRefs
-}
-
-func (rlref *ResolvedLeafRef) DeepCopy() *ResolvedLeafRef {
-	if rlref == nil {
-		return nil
-	}
-	out := new(ResolvedLeafRef)
-	rlref.DeepCopyInto(out)
-	return out
-}
-
-func (rlref *ResolvedLeafRef) DeepCopyInto(out *ResolvedLeafRef){
-	*out = *rlref
-	if rlref.LocalPath != nil {
-		in, out := &rlref.LocalPath, &out.LocalPath
-		*out = new(config.Path)
-		**out = **in
-	}
-	if rlref.RemotePath != nil {
-		in, out := &rlref.RemotePath, &out.RemotePath
-		*out = new(config.Path)
-		**out = **in
-	}
-	out.Resolved = false
-	out.Value = ""
-
-
 }
 
 // PopulateLeafRefWithValue fills out the keys in the path and Populateed the Values if the leafRefValues is not nil
