@@ -91,6 +91,27 @@ func NewResource(opts ...Option) *Resource {
 }
 
 func (r *Resource) AddLocalLeafRef(ll, rl *config.Path) {
+	// add key entries to local leafrefs
+	cEntry := r.RootContainerEntry
+	for i, llpElem := range ll.GetElem() {
+		// the first entry should not contain a key since we avoid this in the generation
+		if i != 0 {
+			for _, cEntry := range cEntry.Next.Entries {
+				if llpElem.GetName() == cEntry.Name {
+					if cEntry.GetKey() != "" {
+						llpElem.Key = make(map[string]string)
+						llpElem.Key[cEntry.GetKey()] = ""
+					}
+				}
+			}
+		}
+		if llpElem.GetName() == cEntry.Name {
+			if cEntry.GetKey() != "" {
+				llpElem.Key = make(map[string]string)
+				llpElem.Key[cEntry.GetKey()] = ""
+			}
+		}
+	}
 	r.LocalLeafRefs = append(r.LocalLeafRefs, &leafref.LeafRef{
 		LocalPath:  ll,
 		RemotePath: rl,
@@ -98,6 +119,27 @@ func (r *Resource) AddLocalLeafRef(ll, rl *config.Path) {
 }
 
 func (r *Resource) AddExternalLeafRef(ll, rl *config.Path) {
+	// add key entries to local leafrefs
+	cEntry := r.RootContainerEntry
+	for i, llpElem := range ll.GetElem() {
+		// the first entry should not contain a key since we avoid this in the generation
+		if i != 0 {
+			for _, cEntry := range cEntry.Next.Entries {
+				if llpElem.GetName() == cEntry.Name {
+					if cEntry.GetKey() != "" {
+						llpElem.Key = make(map[string]string)
+						llpElem.Key[cEntry.GetKey()] = ""
+					}
+				}
+			}
+		}
+		if llpElem.GetName() == cEntry.Name {
+			if cEntry.GetKey() != "" {
+				llpElem.Key = make(map[string]string)
+				llpElem.Key[cEntry.GetKey()] = ""
+			}
+		}
+	}
 	r.ExternalLeafRefs = append(r.ExternalLeafRefs, &leafref.LeafRef{
 		LocalPath:  ll,
 		RemotePath: rl,
