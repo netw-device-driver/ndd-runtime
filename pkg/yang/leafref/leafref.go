@@ -60,7 +60,7 @@ func NewResolvedLeafRefCopy(in *ResolvedLeafRef) (out *ResolvedLeafRef) {
 			if len(v.GetKey()) != 0 {
 				elem.Key = v.Key
 			}
-			out.RemotePath.Elem = append(out.LocalPath.Elem, elem)
+			out.RemotePath.Elem = append(out.RemotePath.Elem, elem)
 		}
 	}
 	out.Resolved = in.Resolved
