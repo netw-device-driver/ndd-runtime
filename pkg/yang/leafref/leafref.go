@@ -116,13 +116,15 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 		}
 	case []interface{}:
 		// copy
+		/*
 		resolvedLeafRefsOrig := &ResolvedLeafRef{
 			LocalPath: resolvedLeafRefs[lridx].LocalPath.DeepCopy(),
 			RemotePath: resolvedLeafRefs[lridx].RemotePath.DeepCopy(),
 			Resolved: false,
 			Value: "",
 		}
-		resolvedLeafRefs[lridx].DeepCopy()
+		*/
+		resolvedLeafRefsOrig := resolvedLeafRefs[lridx].DeepCopy()
 		fmt.Printf("resolvedLeafRefsOrig: %v\n", resolvedLeafRefsOrig)
 		for n, v := range x {
 			switch x2 := v.(type) {

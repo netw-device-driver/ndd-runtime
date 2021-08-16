@@ -51,7 +51,6 @@ func InitializePathElem(e *yang.Entry) *config.PathElem {
 	pathElem := &config.PathElem{
 		Name:      e.Name,
 		Key:       make(map[string]string),
-		Attribute: new(config.Attribute),
 	}
 
 	if e.Key != "" {

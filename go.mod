@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/go-logr/logr v0.4.0
 	github.com/google/go-cmp v0.5.6 // indirect
-	github.com/netw-device-driver/ndd-grpc v0.1.20
+	github.com/netw-device-driver/ndd-grpc v0.1.21
 	github.com/openconfig/goyang v0.2.7
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.6.0
