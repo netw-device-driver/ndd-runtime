@@ -46,7 +46,10 @@ func NewResolvedLeafRefCopy(in *ResolvedLeafRef) (out *ResolvedLeafRef) {
 			elem := &config.PathElem{}
 			elem.Name = v.Name
 			if len(v.GetKey()) != 0 {
-				elem.Key = v.Key
+				elem.Key = make(map[string]string)
+				for key, value := range v.Key {
+					elem.Key[key] = value
+				}
 			}
 			out.LocalPath.Elem = append(out.LocalPath.Elem, elem)
 		}
@@ -58,7 +61,10 @@ func NewResolvedLeafRefCopy(in *ResolvedLeafRef) (out *ResolvedLeafRef) {
 			elem := &config.PathElem{}
 			elem.Name = v.Name
 			if len(v.GetKey()) != 0 {
-				elem.Key = v.Key
+				elem.Key = make(map[string]string)
+				for key, value := range v.Key {
+					elem.Key[key] = value
+				}
 			}
 			out.RemotePath.Elem = append(out.RemotePath.Elem, elem)
 		}
