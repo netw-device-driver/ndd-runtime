@@ -117,18 +117,25 @@ func (r *Resource) AddLocalLeafRef(ll, rl *config.Path) {
 
 func (r *Resource) AddExternalLeafRef(ll, rl *config.Path) {
 	// add key entries to local leafrefs
-	for _, llpElem := range ll.GetElem() {
-		for _, c := range r.ContainerList {
-			fmt.Printf(" Resource AddExternalLeafRef llpElem.GetName(): %s, ContainerName: %s\n", llpElem.GetName(), c.Name)
-			if c.Name == llpElem.GetName() {
-				for _, e := range c.Entries {
-					fmt.Printf(" Resource AddExternalLeafRef llpElem.GetName(): %s, ContainerName: %s, ContainerEntryName: %s\n", llpElem.GetName(), c.Name, e.GetName())
-					if e.GetName() == llpElem.GetName() {
-						if e.GetKey() != "" {
-							llpElem.Key = make(map[string]string)
-							llpElem.Key[e.GetKey()] = ""
-						}
-					}
+	entries := make([]*container.Entry, 0)
+	for i, llpElem := range ll.GetElem() {
+		if i == 0 {
+			for _, c := range r.ContainerList {
+				fmt.Printf(" Resource AddExternalLeafRef i: %d llpElem.GetName(): %s, ContainerName: %s\n",i, llpElem.GetName(), c.Name)
+				if c.Name == llpElem.GetName() {
+					entries = c.Entries
+				}
+			}
+		}
+		for _, e := range entries {
+			fmt.Printf(" Resource AddExternalLeafRef i: %d llpElem.GetName(): %s, EntryName: %s\n",i, llpElem.GetName(), e.GetName())
+			if e.GetName() == llpElem.GetName() {
+				if e.GetKey() != "" {
+					llpElem.Key = make(map[string]string)
+					llpElem.Key[e.GetKey()] = ""
+				}
+				if e.Next != nil {
+					entries = e.Next.Entries
 				}
 			}
 		}
