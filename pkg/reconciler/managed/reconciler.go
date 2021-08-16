@@ -327,7 +327,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
-			if err := r.managed.RemoveFinalizerString(ctx, emr, "finalizer" + "." + managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
+			if err := r.managed.RemoveFinalizerString(ctx, emr, "finalizer"+"."+managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
 				log.Debug("Cannot add finalizer to external resource", "error", err, "external resource", externalResourceName)
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
@@ -428,7 +428,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 					managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 				}
-				if err := r.managed.RemoveFinalizerString(ctx, emr, "finalizer" + "." + managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
+				if err := r.managed.RemoveFinalizerString(ctx, emr, "finalizer"+"."+managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
 					log.Debug("Cannot add finalizer to external resource", "error", err, "external resource", externalResourceName)
 					managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
@@ -563,7 +563,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
-			if err := r.managed.RemoveFinalizerString(ctx, emr, "finalizer" + "." + managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
+			if err := r.managed.RemoveFinalizerString(ctx, emr, "finalizer"+"."+managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
 				log.Debug("Cannot add finalizer to external resource", "error", err, "external resource", externalResourceName)
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
@@ -699,7 +699,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	externalResourceNames := make([]string, 0)
 	log.Debug("External Leafref Validation", "resolved leafref", externalLeafrefObservation.ResolvedLeafRefs)
 	for _, resolvedLeafRef := range externalLeafrefObservation.ResolvedLeafRefs {
-		externalResourceName, err := external.GetResourceName(externalCtx, &resolvedLeafRef.RemotePath)
+		externalResourceName, err := external.GetResourceName(externalCtx, resolvedLeafRef.RemotePath)
 		if err != nil {
 			log.Debug("Cannot get resource name", "error", err)
 			record.Event(managed, event.Warning(reasonCannotGetResourceName, err))
@@ -737,7 +737,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
 		log.Debug("External Leafref Validation", "External Managed Resource", emr)
-		if err := r.managed.AddFinalizerString(ctx, emr, "finalizer" + "." + managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
+		if err := r.managed.AddFinalizerString(ctx, emr, "finalizer"+"."+managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
 			log.Debug("Cannot add finalizer to external resource", "error", err, "external resource", externalResourceName)
 			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)

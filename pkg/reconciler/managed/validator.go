@@ -66,7 +66,7 @@ func (e *NopValidator) ValidateParentDependency(ctx context.Context, mg resource
 type ValidateLocalleafRefObservation struct {
 	Success bool
 
-	ResolvedLeafRefs []leafref.ResolvedLeafRef
+	ResolvedLeafRefs []*leafref.ResolvedLeafRef
 
 	Details string
 }
@@ -74,7 +74,7 @@ type ValidateLocalleafRefObservation struct {
 type ValidateExternalleafRefObservation struct {
 	Success bool
 
-	ResolvedLeafRefs []leafref.ResolvedLeafRef
+	ResolvedLeafRefs []*leafref.ResolvedLeafRef
 
 	Details string
 }
@@ -82,7 +82,7 @@ type ValidateExternalleafRefObservation struct {
 type ValidationParentDependencyObservation struct {
 	Success bool
 
-	ResolvedLeafRefs []leafref.ResolvedLeafRef
+	ResolvedLeafRefs []*leafref.ResolvedLeafRef
 
 	Details string
 }
