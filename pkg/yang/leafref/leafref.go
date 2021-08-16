@@ -300,13 +300,12 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 	switch x := x1.(type) {
 	case map[string]interface{}:
 		for k, x2 := range x {
-			fmt.Printf("FindRemoteLeafRef map[string]interface{} List with Key: idx: %d, data: %v\n", idx, x2)
+			fmt.Printf("FindRemoteLeafRef map[string]interface{} List with Key: idx: %d, k: %s\n data: %v\n", idx, k, x2)
 			if k == rlref.RemotePath.GetElem()[idx].GetName() {
 				// check if this is the last element/index in the path
 				if idx == len(rlref.RemotePath.GetElem())-1 {
 					// check if the element in the path has a key
 					if len(rlref.RemotePath.GetElem()[idx].GetKey()) != 0 {
-
 						// given the element has a key we need to go through the []interface{} part
 						return rlref.FindRemoteLeafRef(x2, idx)
 					} else {
@@ -339,7 +338,7 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 				for k3, x3 := range x2 {
 					fmt.Printf("FindRemoteLeafRef []interface{} 1 idx: %d, k3: %v, x3: %v\n", idx, k3, x3)
 					if len(rlref.RemotePath.GetElem()[idx].GetKey()) != 0 {
-						for k := range rlref.RemotePath.GetElem()[idx].GetKey() {
+						for k, value := range rlref.RemotePath.GetElem()[idx].GetKey() {
 							fmt.Printf("FindRemoteLeafRef []interface{} 2 idx: %d, k3: %v, k: %v\n", idx, k3, k)
 							if k3 == k {
 								// check if this is the last element/index in the path
@@ -348,16 +347,16 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 									fmt.Printf("FindRemoteLeafRef []interface{} 3 idx: %d, k3: %v, x3: %v, rlref.Value: %v\n", idx, k3, x3, rlref.Value)
 									switch x := x3.(type) {
 									case string:
-										if string(x) == rlref.Value {
+										if string(x) == value {
 											return true
 										}
 									case uint32:
-										if strconv.Itoa(int(x)) == rlref.Value {
+										if strconv.Itoa(int(x)) == value {
 											return true
 										}
 									case float64:
-										fmt.Printf("a: %s, b: %s\n", fmt.Sprintf("%.0f", x), rlref.Value)
-										if fmt.Sprintf("%.0f", x) == rlref.Value {
+										fmt.Printf("a: %s, b: %s\n", fmt.Sprintf("%.0f", x), value)
+										if fmt.Sprintf("%.0f", x) == value {
 											return true
 										}
 									default:
