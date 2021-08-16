@@ -342,55 +342,53 @@ func (rlref *ResolvedLeafRef) FindRemoteLeafRef(x1 interface{}, idx int) (found 
 							fmt.Printf("FindRemoteLeafRef []interface{} 2 idx: %d, k3: %v, k: %v\n", idx, k3, k)
 							if k3 == k {
 								fmt.Printf("FindRemoteLeafRef []interface{} 3 idx: %d, k3: %v, x3: %v, value: %v, rlref.Value: %v\n", idx, k3, x3, value, rlref.Value)
-								if x3 == value {
-									// check if this is the last element/index in the path
-									if idx == len(rlref.RemotePath.GetElem())-1 {
-										// return the value
-										fmt.Printf("FindRemoteLeafRef []interface{} 4 idx: %d, k3: %v, x3: %v, value: %v, rlref.Value: %v\n", idx, k3, x3, value, rlref.Value)
-										switch x := x3.(type) {
-										case string:
-											fmt.Printf("strubg a: %s, b: %s\n", string(x), value)
-											if string(x) == value {
-												return true
-											}
-										case uint32:
-											fmt.Printf("uint32 a: %s, b: %s\n", strconv.Itoa(int(x)), value)
-											if strconv.Itoa(int(x)) == value {
-												return true
-											}
-										case float64:
-											fmt.Printf("float64 a: %s, b: %s\n", fmt.Sprintf("%.0f", x), value)
-											if fmt.Sprintf("%.0f", x) == value {
-												return true
-											}
-										default:
-											fmt.Println(reflect.TypeOf(x))
+								// check if this is the last element/index in the path
+								if idx == len(rlref.RemotePath.GetElem())-1 {
+									// return the value
+									fmt.Printf("FindRemoteLeafRef []interface{} 4 idx: %d, k3: %v, x3: %v, value: %v, rlref.Value: %v\n", idx, k3, x3, value, rlref.Value)
+									switch x := x3.(type) {
+									case string:
+										fmt.Printf("string a: %s, b: %s\n", string(x), value)
+										if string(x) == value {
+											return true
 										}
-										// we should not return here since there can be multiple elements in the
-										// list and we need to exercise them all, the geenric return will take care of it
-									} else {
-										switch x := x3.(type) {
-										case string:
-											fmt.Printf("strubg a: %s, b: %s\n", string(x), value)
-											if string(x) == value {
-												idx++
-												return rlref.FindRemoteLeafRef(x2, idx)
-											}
-										case uint32:
-											fmt.Printf("uint32 a: %s, b: %s\n", strconv.Itoa(int(x)), value)
-											if strconv.Itoa(int(x)) == value {
-												idx++
-												return rlref.FindRemoteLeafRef(x2, idx)
-											}
-										case float64:
-											fmt.Printf("float64 a: %s, b: %s\n", fmt.Sprintf("%.0f", x), value)
-											if fmt.Sprintf("%.0f", x) == value {
-												idx++
-												return rlref.FindRemoteLeafRef(x2, idx)
-											}
-										default:
-											fmt.Println(reflect.TypeOf(x))
+									case uint32:
+										fmt.Printf("uint32 a: %s, b: %s\n", strconv.Itoa(int(x)), value)
+										if strconv.Itoa(int(x)) == value {
+											return true
 										}
+									case float64:
+										fmt.Printf("float64 a: %s, b: %s\n", fmt.Sprintf("%.0f", x), value)
+										if fmt.Sprintf("%.0f", x) == value {
+											return true
+										}
+									default:
+										fmt.Println(reflect.TypeOf(x))
+									}
+									// we should not return here since there can be multiple elements in the
+									// list and we need to exercise them all, the geenric return will take care of it
+								} else {
+									switch x := x3.(type) {
+									case string:
+										fmt.Printf("string a: %s, b: %s\n", string(x), value)
+										if string(x) == value {
+											idx++
+											return rlref.FindRemoteLeafRef(x2, idx)
+										}
+									case uint32:
+										fmt.Printf("uint32 a: %s, b: %s\n", strconv.Itoa(int(x)), value)
+										if strconv.Itoa(int(x)) == value {
+											idx++
+											return rlref.FindRemoteLeafRef(x2, idx)
+										}
+									case float64:
+										fmt.Printf("float64 a: %s, b: %s\n", fmt.Sprintf("%.0f", x), value)
+										if fmt.Sprintf("%.0f", x) == value {
+											idx++
+											return rlref.FindRemoteLeafRef(x2, idx)
+										}
+									default:
+										fmt.Println(reflect.TypeOf(x))
 									}
 								}
 							}
