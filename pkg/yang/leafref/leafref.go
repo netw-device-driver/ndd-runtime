@@ -90,7 +90,8 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 			}
 		}
 	case []interface{}:
-		resolvedLeafRefsOrig := *resolvedLeafRefs[lridx]
+		// copy
+		resolvedLeafRefsOrig := resolvedLeafRefs[lridx].DeepCopy()
 		fmt.Printf("resolvedLeafRefsOrig: %v\n", resolvedLeafRefsOrig)
 		for n, v := range x {
 			switch x2 := v.(type) {
@@ -104,7 +105,7 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 						for k := range l.LocalPath.GetElem()[idx].GetKey() {
 							if k == k3 {
 								if n > 0 {
-									resolvedLeafRefs = append(resolvedLeafRefs, &resolvedLeafRefsOrig)
+									resolvedLeafRefs = append(resolvedLeafRefs, resolvedLeafRefsOrig)
 									lridx++
 								}
 								// check if this is the last element/index in the path
@@ -135,6 +136,33 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 		// When we come here we have no resolution
 	}
 	return resolvedLeafRefs
+}
+
+func (rlref *ResolvedLeafRef) DeepCopy() *ResolvedLeafRef {
+	if rlref == nil {
+		return nil
+	}
+	out := new(ResolvedLeafRef)
+	rlref.DeepCopyInto(out)
+	return out
+}
+
+func (rlref *ResolvedLeafRef) DeepCopyInto(out *ResolvedLeafRef){
+	*out = *rlref
+	if rlref.LocalPath != nil {
+		in, out := &rlref.LocalPath, &out.LocalPath
+		*out = new(config.Path)
+		**out = **in
+	}
+	if rlref.RemotePath != nil {
+		in, out := &rlref.RemotePath, &out.RemotePath
+		*out = new(config.Path)
+		**out = **in
+	}
+	out.Resolved = false
+	out.Value = ""
+
+
 }
 
 // PopulateLeafRefWithValue fills out the keys in the path and Populateed the Values if the leafRefValues is not nil
