@@ -701,7 +701,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	externalResourceNames := make([]string, 0)
 	log.Debug("External Leafref Validation", "resolved leafref", externalLeafrefObservation.ResolvedLeafRefs)
 	for _, resolvedLeafRef := range externalLeafrefObservation.ResolvedLeafRefs {
-		for i := 0; i < len(strings.Split(resolvedLeafRef.Value, "."))-1; i++ {
+		for i := 0; i < len(strings.Split(resolvedLeafRef.Value, ".")); i++ {
 			var externalResourceName string
 			if i > 0 {
 				// this is a special case where the value is split in "." e.g. network-instance -> interface + subinterface
