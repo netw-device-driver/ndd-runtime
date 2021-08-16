@@ -500,37 +500,9 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	}
 
 	if meta.WasDeleted(managed) {
+		// delete triggered
 		log = log.WithValues("deletion-timestamp", managed.GetDeletionTimestamp())
 		managed.SetConditions(nddv1.Deleting())
-
-		// We'll only reach this point if deletion policy is not orphan, so we
-		// are safe to call external deletion if external resource exists.
-		if observation.ResourceExists {
-			if err := external.Delete(externalCtx, managed); err != nil {
-				// We'll hit this condition if we can't delete our external
-				// resource, for example if our provider credentials don't have
-				// access to delete it. If this is the first time we encounter
-				// this issue we'll be requeued implicitly when we update our
-				// status with the new error condition. If not, we want requeue
-				// explicitly, which will trigger backoff.
-				log.Debug("Cannot delete external resource", "error", err)
-				record.Event(managed, event.Warning(reasonCannotDelete, err))
-				managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileDelete)), nddv1.Unknown())
-				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-			}
-
-			// We've successfully requested deletion of our external resource.
-			// We queue another reconcile after a short wait rather than
-			// immediately finalizing our delete in order to verify that the
-			// external resource was actually deleted. If it no longer exists
-			// we'll skip this block on the next reconcile and proceed to
-			// unpublish and finalize. If it still exists we'll re-enter this
-			// block and try again.
-			log.Debug("Successfully requested deletion of external resource")
-			record.Event(managed, event.Normal(reasonDeleted, "Successfully requested deletion of external resource"))
-			managed.SetConditions(nddv1.ReconcileSuccess())
-			return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-		}
 
 		// if the resource has external leafref dependencies, we cannot delete the
 		// resource
@@ -570,6 +542,35 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
+		}
+
+		// We'll only reach this point if deletion policy is not orphan, so we
+		// are safe to call external deletion if external resource exists.
+		if observation.ResourceExists {
+			if err := external.Delete(externalCtx, managed); err != nil {
+				// We'll hit this condition if we can't delete our external
+				// resource, for example if our provider credentials don't have
+				// access to delete it. If this is the first time we encounter
+				// this issue we'll be requeued implicitly when we update our
+				// status with the new error condition. If not, we want requeue
+				// explicitly, which will trigger backoff.
+				log.Debug("Cannot delete external resource", "error", err)
+				record.Event(managed, event.Warning(reasonCannotDelete, err))
+				managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileDelete)), nddv1.Unknown())
+				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			}
+
+			// We've successfully requested deletion of our external resource.
+			// We queue another reconcile after a short wait rather than
+			// immediately finalizing our delete in order to verify that the
+			// external resource was actually deleted. If it no longer exists
+			// we'll skip this block on the next reconcile and proceed to
+			// unpublish and finalize. If it still exists we'll re-enter this
+			// block and try again.
+			log.Debug("Successfully requested deletion of external resource")
+			record.Event(managed, event.Normal(reasonDeleted, "Successfully requested deletion of external resource"))
+			managed.SetConditions(nddv1.ReconcileSuccess())
+			return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
 
 		if err := r.managed.RemoveFinalizer(ctx, managed); err != nil {
