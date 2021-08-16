@@ -52,11 +52,10 @@ func (rlref *ResolvedLeafRef) DeepCopyInto(out *ResolvedLeafRef){
 		out.LocalPath = new(config.Path)
 		out.LocalPath.Elem = make([]*config.PathElem, 0)
 		for _, v := range rlref.LocalPath.GetElem() {
-			elem := &config.PathElem{
-				Name: v.GetName(),
-			}
+			elem := &config.PathElem{}
+			elem.Name = v.Name
 			if len(v.GetKey()) != 0 {
-				elem.Key = v.GetKey()
+				elem.Key = v.Key
 			} 
 			out.LocalPath.Elem = append(out.LocalPath.Elem, elem)
 		}
@@ -66,10 +65,10 @@ func (rlref *ResolvedLeafRef) DeepCopyInto(out *ResolvedLeafRef){
 		out.RemotePath.Elem = make([]*config.PathElem, 0)
 		for _, v := range rlref.RemotePath.GetElem() {
 			elem := &config.PathElem{
-				Name: v.GetName(),
+				Name: v.Name,
 			}
 			if len(v.GetKey()) != 0 {
-				elem.Key = v.GetKey()
+				elem.Key = v.Key
 			} 
 			out.RemotePath.Elem = append(out.RemotePath.Elem, elem)
 		}
