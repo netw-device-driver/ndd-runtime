@@ -37,6 +37,38 @@ type ResolvedLeafRef struct {
 	Resolved   bool         `json:"resolved,omitempty"`
 }
 
+func NewResolvedLeafRefCopy(in *ResolvedLeafRef) (out *ResolvedLeafRef) {
+	out = new(ResolvedLeafRef)
+	if in.LocalPath != nil {
+		out.LocalPath = new(config.Path)
+		out.LocalPath.Elem = make([]*config.PathElem, 0)
+		for _, v := range in.LocalPath.GetElem() {
+			elem := &config.PathElem{}
+			elem.Name = v.Name
+			if len(v.GetKey()) != 0 {
+				elem.Key = v.Key
+			}
+			out.LocalPath.Elem = append(out.LocalPath.Elem, elem)
+		}
+	}
+	if in.RemotePath != nil {
+		out.RemotePath = new(config.Path)
+		out.RemotePath.Elem = make([]*config.PathElem, 0)
+		for _, v := range in.RemotePath.GetElem() {
+			elem := &config.PathElem{}
+			elem.Name = v.Name
+			if len(v.GetKey()) != 0 {
+				elem.Key = v.Key
+			}
+			out.RemotePath.Elem = append(out.LocalPath.Elem, elem)
+		}
+	}
+	out.Resolved = in.Resolved
+	out.Value = in.Value
+	return out
+}
+
+/*
 func (rlref *ResolvedLeafRef) DeepCopy() *ResolvedLeafRef {
 	if rlref == nil {
 		return nil
@@ -45,18 +77,21 @@ func (rlref *ResolvedLeafRef) DeepCopy() *ResolvedLeafRef {
 	rlref.DeepCopyInto(out)
 	return out
 }
+*/
 
+/*
 func (rlref *ResolvedLeafRef) DeepCopyInto(out *ResolvedLeafRef){
 	*out = *rlref
 	if rlref.LocalPath != nil {
-		out.LocalPath = new(config.Path)
-		out.LocalPath.Elem = make([]*config.PathElem, 0)
+		in, out := &rlref.LocalPath, &out.LocalPath
+		out = new(*config.Path)
+		*out.Elem = make([]*config.PathElem, len(in.GetElem()))
 		for _, v := range rlref.LocalPath.GetElem() {
 			elem := &config.PathElem{}
 			elem.Name = v.Name
 			if len(v.GetKey()) != 0 {
 				elem.Key = v.Key
-			} 
+			}
 			out.LocalPath.Elem = append(out.LocalPath.Elem, elem)
 		}
 	}
@@ -69,13 +104,14 @@ func (rlref *ResolvedLeafRef) DeepCopyInto(out *ResolvedLeafRef){
 			}
 			if len(v.GetKey()) != 0 {
 				elem.Key = v.Key
-			} 
+			}
 			out.RemotePath.Elem = append(out.RemotePath.Elem, elem)
 		}
 	}
 	out.Resolved = rlref.Resolved
 	out.Value = rlref.Value
 }
+*/
 
 func NewLeafReaf(lPath, rPath *config.Path) *LeafRef {
 	return &LeafRef{
@@ -131,8 +167,8 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 		}
 	case []interface{}:
 		// cop
-		
-		resolvedLeafRefsOrig := resolvedLeafRefs[lridx].DeepCopy()
+
+		resolvedLeafRefsOrig := NewResolvedLeafRefCopy(resolvedLeafRefs[lridx]) 
 		fmt.Printf("resolvedLeafRefsOrig: %v\n", resolvedLeafRefsOrig)
 		for n, v := range x {
 			switch x2 := v.(type) {
