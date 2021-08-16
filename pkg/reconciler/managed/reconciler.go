@@ -34,6 +34,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	config "github.com/netw-device-driver/ndd-grpc/config/configpb"
+
 )
 
 const (
@@ -699,23 +701,45 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	externalResourceNames := make([]string, 0)
 	log.Debug("External Leafref Validation", "resolved leafref", externalLeafrefObservation.ResolvedLeafRefs)
 	for _, resolvedLeafRef := range externalLeafrefObservation.ResolvedLeafRefs {
-		externalResourceName, err := external.GetResourceName(externalCtx, resolvedLeafRef.RemotePath)
-		if err != nil {
-			log.Debug("Cannot get resource name", "error", err)
-			record.Event(managed, event.Warning(reasonCannotGetResourceName, err))
-			managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileGetResourceName)), nddv1.Unknown())
-			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-		}
-		// only append unique externalResourceName
-		found := false
-		for _, extResName := range externalResourceNames {
-			if extResName == externalResourceName {
-				found = true
+		for i := 0; i < len(strings.Split(resolvedLeafRef.Value, "."))-1; i++ {
+			var externalResourceName string
+			if i > 0 {
+				// this is a special case where the value is split in "." e.g. network-instance -> interface + subinterface
+				// or tunnel-interface + vxlan-interface
+				// we create a shorter path to resolve the hierarchical path
+				remotePath := &config.Path{
+					Elem: make([]*config.PathElem, 0),
+				}
+				remotePath.Elem = append(remotePath.Elem, resolvedLeafRef.RemotePath.GetElem()[0])
+				externalResourceName, err = external.GetResourceName(externalCtx, remotePath)
+				if err != nil {
+					log.Debug("Cannot get resource name", "error", err)
+					record.Event(managed, event.Warning(reasonCannotGetResourceName, err))
+					managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileGetResourceName)), nddv1.Unknown())
+					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+				}
+			} else {
+				externalResourceName, err = external.GetResourceName(externalCtx, resolvedLeafRef.RemotePath)
+				if err != nil {
+					log.Debug("Cannot get resource name", "error", err)
+					record.Event(managed, event.Warning(reasonCannotGetResourceName, err))
+					managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileGetResourceName)), nddv1.Unknown())
+					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+				}
+			}
+
+			// only append unique externalResourceName
+			found := false
+			for _, extResName := range externalResourceNames {
+				if extResName == externalResourceName {
+					found = true
+				}
+			}
+			if !found {
+				externalResourceNames = append(externalResourceNames, externalResourceName)
 			}
 		}
-		if !found {
-			externalResourceNames = append(externalResourceNames, externalResourceName)
-		}
+
 	}
 
 	log.Debug("External Leafref Validation", "externalResourceNames", externalResourceNames)
