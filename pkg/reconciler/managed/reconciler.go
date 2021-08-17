@@ -744,7 +744,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 	log.Debug("External Leafref Validation", "externalResourceNames", externalResourceNames)
 	for n, externalResourceName := range externalResourceNames {
-		if len(strings.Split(externalResourceName, ".")) < 2 {
+		if externalResourceName == "" {
 			split := strings.Split(externalResourceName, ".")
 			emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
 			if err != nil {
@@ -769,6 +769,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			}
 		} else {
 			log.Debug("this is an external leafref of an umanaged resource of ndd")
+			// delete entry from externalResourceNames since it will case issues later on if we dont do it
+			// when we delete the resource e.g.
 			externalResourceNames = append(externalResourceNames[:n], externalResourceNames[n+1:]...)
 		}
 	}
