@@ -728,24 +728,25 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 				}
 			}
 
-			// only append unique externalResourceName
-			found := false
-			for _, extResName := range externalResourceNames {
-				if externalResourceName != "" {
+			// only append unique externalResourceName if the external resource is managed by the ndd provider
+			if externalResourceName != "" {
+				found := false
+				for _, extResName := range externalResourceNames {
+
 					// only append the externalResourceName for objects that are managed by the provider
 					if extResName == externalResourceName {
 						found = true
 					}
-				} else {
-					found = true
-					log.Debug("this is an external leafref of an umanaged resource of ndd")
-					// delete entry from externalResourceNames since it will cause issues later on if we dont do it
-					// when we delete the resource e.g.
 				}
+				if !found {
+					externalResourceNames = append(externalResourceNames, externalResourceName)
+				}
+			} else {
+				log.Debug("this is an external leafref of an umanaged resource of ndd")
+				// delete entry from externalResourceNames since it will cause issues later on if we dont do it
+				// when we delete the resource e.g.
 			}
-			if !found {
-				externalResourceNames = append(externalResourceNames, externalResourceName)
-			}
+
 		}
 	}
 
