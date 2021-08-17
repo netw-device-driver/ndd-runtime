@@ -731,48 +731,49 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			// only append unique externalResourceName
 			found := false
 			for _, extResName := range externalResourceNames {
-				if extResName == externalResourceName {
+				if externalResourceName != "" {
+					// only append the externalResourceName for objects that are managed by the provider
+					if extResName == externalResourceName {
+						found = true
+					}
+				} else {
 					found = true
+					log.Debug("this is an external leafref of an umanaged resource of ndd")
+					// delete entry from externalResourceNames since it will cause issues later on if we dont do it
+					// when we delete the resource e.g.
 				}
 			}
 			if !found {
 				externalResourceNames = append(externalResourceNames, externalResourceName)
 			}
 		}
-
 	}
 
 	log.Debug("External Leafref Validation", "externalResourceNames", externalResourceNames)
-	for n, externalResourceName := range externalResourceNames {
-		if externalResourceName == "" {
-			split := strings.Split(externalResourceName, ".")
-			emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
-			if err != nil {
-				log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
-				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
-				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-			}
-			key := types.NamespacedName{
-				Namespace: managed.GetNamespace(),
-				Name:      split[len(split)-1],
-			}
-			if err := r.client.Get(ctx, key, emr); err != nil {
-				log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
-				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
-				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-			}
-			log.Debug("External Leafref Validation", "External Managed Resource", emr)
-			if err := r.managed.AddFinalizerString(ctx, emr, managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
-				log.Debug("Cannot add finalizer to external resource", "error", err, "external resource", externalResourceName)
-				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
-				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-			}
-		} else {
-			log.Debug("this is an external leafref of an umanaged resource of ndd")
-			// delete entry from externalResourceNames since it will case issues later on if we dont do it
-			// when we delete the resource e.g.
-			externalResourceNames = append(externalResourceNames[:n], externalResourceNames[n+1:]...)
+	for _, externalResourceName := range externalResourceNames {
+		split := strings.Split(externalResourceName, ".")
+		emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
+		if err != nil {
+			log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
+			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
+		key := types.NamespacedName{
+			Namespace: managed.GetNamespace(),
+			Name:      split[len(split)-1],
+		}
+		if err := r.client.Get(ctx, key, emr); err != nil {
+			log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
+			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		}
+		log.Debug("External Leafref Validation", "External Managed Resource", emr)
+		if err := r.managed.AddFinalizerString(ctx, emr, managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
+			log.Debug("Cannot add finalizer to external resource", "error", err, "external resource", externalResourceName)
+			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		}
+
 	}
 	log.Debug("External Leafref Validation", "externalResourceNames", externalResourceNames)
 
