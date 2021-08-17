@@ -744,7 +744,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 	log.Debug("External Leafref Validation", "externalResourceNames", externalResourceNames)
 	for n, externalResourceName := range externalResourceNames {
-		if externalResourceName != "" {
+		if len(strings.Split(externalResourceName, ".")) < 2 {
 			split := strings.Split(externalResourceName, ".")
 			emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
 			if err != nil {
