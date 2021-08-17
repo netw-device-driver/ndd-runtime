@@ -24,6 +24,7 @@ import (
 
 	nddv1 "github.com/netw-device-driver/ndd-runtime/apis/common/v1"
 
+	config "github.com/netw-device-driver/ndd-grpc/config/configpb"
 	"github.com/netw-device-driver/ndd-runtime/pkg/event"
 	"github.com/netw-device-driver/ndd-runtime/pkg/logging"
 	"github.com/netw-device-driver/ndd-runtime/pkg/meta"
@@ -34,8 +35,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	config "github.com/netw-device-driver/ndd-grpc/config/configpb"
-
 )
 
 const (
@@ -744,30 +743,36 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	}
 
 	log.Debug("External Leafref Validation", "externalResourceNames", externalResourceNames)
-	for _, externalResourceName := range externalResourceNames {
-		split := strings.Split(externalResourceName, ".")
-		emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
-		if err != nil {
-			log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
-			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
-			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-		}
-		key := types.NamespacedName{
-			Namespace: managed.GetNamespace(),
-			Name:      split[len(split)-1],
-		}
-		if err := r.client.Get(ctx, key, emr); err != nil {
-			log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
-			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
-			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-		}
-		log.Debug("External Leafref Validation", "External Managed Resource", emr)
-		if err := r.managed.AddFinalizerString(ctx, emr, managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
-			log.Debug("Cannot add finalizer to external resource", "error", err, "external resource", externalResourceName)
-			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
-			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+	for n, externalResourceName := range externalResourceNames {
+		if externalResourceName != "" {
+			split := strings.Split(externalResourceName, ".")
+			emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
+			if err != nil {
+				log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
+				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			}
+			key := types.NamespacedName{
+				Namespace: managed.GetNamespace(),
+				Name:      split[len(split)-1],
+			}
+			if err := r.client.Get(ctx, key, emr); err != nil {
+				log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
+				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			}
+			log.Debug("External Leafref Validation", "External Managed Resource", emr)
+			if err := r.managed.AddFinalizerString(ctx, emr, managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
+				log.Debug("Cannot add finalizer to external resource", "error", err, "external resource", externalResourceName)
+				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			}
+		} else {
+			log.Debug("this is an external leafref of an umanaged resource of ndd")
+			externalResourceNames = append(externalResourceNames[:n], externalResourceNames[n+1:]...)
 		}
 	}
+	log.Debug("External Leafref Validation", "externalResourceNames", externalResourceNames)
 
 	managed.SetConditions(nddv1.ExternalLeafRefValidationSuccess().WithExternalResourceNames(externalResourceNames))
 
