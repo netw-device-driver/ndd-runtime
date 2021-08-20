@@ -121,14 +121,14 @@ func (r *Resource) AddExternalLeafRef(ll, rl *config.Path) {
 	for i, llpElem := range ll.GetElem() {
 		if i == 0 {
 			for _, c := range r.ContainerList {
-				fmt.Printf(" Resource AddExternalLeafRef i: %d llpElem.GetName(): %s, ContainerName: %s\n",i, llpElem.GetName(), c.Name)
+				fmt.Printf(" Resource AddExternalLeafRef i: %d llpElem.GetName(): %s, ContainerName: %s\n", i, llpElem.GetName(), c.Name)
 				if c.Name == llpElem.GetName() {
 					entries = c.Entries
 				}
 			}
 		}
 		for _, e := range entries {
-			fmt.Printf(" Resource AddExternalLeafRef i: %d llpElem.GetName(): %s, EntryName: %s\n",i, llpElem.GetName(), e.GetName())
+			fmt.Printf(" Resource AddExternalLeafRef i: %d llpElem.GetName(): %s, EntryName: %s\n", i, llpElem.GetName(), e.GetName())
 			if e.GetName() == llpElem.GetName() {
 				if e.GetKey() != "" {
 					llpElem.Key = make(map[string]string)
@@ -295,6 +295,74 @@ func (r *Resource) GetHierarchicalElements() []*HeInfo {
 		he = findHierarchicalElements(r.DependsOn, he)
 	}
 	return he
+}
+
+func DeepCopyConfigPath(in *config.Path) *config.Path {
+	out := &config.Path{
+		Elem: make([]*config.PathElem, 0),
+	}
+	for _, elem := range in.Elem {
+		pathElem := &config.PathElem{
+			Name: elem.Name,
+		}
+		if len(elem.Key) != 0 {
+			pathElem.Key = make(map[string]string)
+			for k, v := range elem.Key {
+				pathElem.Key[k] = v
+			}
+		}
+		out.Elem = append(out.Elem, pathElem)
+	}
+	return out
+}
+
+func addPathElem(p *config.Path, e *container.Entry) *config.Path {
+	if e.Key != "" {
+		p.Elem = []*config.PathElem{
+			{Name: e.Name},
+		}
+	} else {
+		p.Elem = []*config.PathElem{
+			{Name: e.Name, Key: map[string]string{e.Key: ""}},
+		}
+	}
+	return p
+}
+
+func (r *Resource) GetInternalHierarchicalPaths() []*config.Path {
+	// paths collects all paths
+	paths := make([]*config.Path, 0)
+	// allocate a new path
+	path := &config.Path{
+		Elem: make([]*config.PathElem, 0),
+	}
+	// add root container entry to path elem
+	addPathElem(path, r.RootContainerEntry)
+	// append the path to the paths list
+	paths = append(paths, path)
+
+	for _, e := range r.ContainerList[0].Entries {
+		if e.Next != nil {
+			addInternalHierarchicalPath(paths, path, e)
+		}
+	}
+	return paths
+}
+
+func addInternalHierarchicalPath(paths []*config.Path, origPath *config.Path, e *container.Entry) []*config.Path{
+	// copy the old path to a new path
+	path := DeepCopyConfigPath(origPath)
+	// add container entry to path elem
+	addPathElem(path, e)
+	// append the path to the paths list
+	paths = append(paths, path)
+	for _, e := range e.Next.Entries {
+		if e.Next != nil {
+			addInternalHierarchicalPath(paths, path, e)
+		}
+	}
+	return paths
+
 }
 
 func findHierarchicalElements(r *Resource, he []*HeInfo) []*HeInfo {
