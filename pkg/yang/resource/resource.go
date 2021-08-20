@@ -344,7 +344,7 @@ func (r *Resource) GetInternalHierarchicalPaths() []*config.Path {
 	for _, e := range r.ContainerList[0].Entries {
 		if e.Next != nil {
 			fmt.Printf("GetInternalHierarchicalPaths Next Entry : %v, Container: %v", e, e.Next)
-			addInternalHierarchicalPath(paths, path, e)
+			paths = addInternalHierarchicalPath(paths, path, e)
 		}
 	}
 	return paths
@@ -359,7 +359,8 @@ func addInternalHierarchicalPath(paths []*config.Path, origPath *config.Path, e 
 	paths = append(paths, path)
 	for _, e := range e.Next.Entries {
 		if e.Next != nil {
-			addInternalHierarchicalPath(paths, path, e)
+			fmt.Printf("addInternalHierarchicalPath Next Entry : %v, Container: %v", e, e.Next)
+			paths = addInternalHierarchicalPath(paths, path, e)
 		}
 	}
 	return paths
