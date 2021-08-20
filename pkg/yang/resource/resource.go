@@ -343,6 +343,7 @@ func (r *Resource) GetInternalHierarchicalPaths() []*config.Path {
 
 	for _, e := range r.ContainerList[0].Entries {
 		if e.Next != nil {
+			fmt.Printf("GetInternalHierarchicalPaths Next Entry : %v, Container: %v", e, e.Next)
 			addInternalHierarchicalPath(paths, path, e)
 		}
 	}
