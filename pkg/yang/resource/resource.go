@@ -316,7 +316,7 @@ func DeepCopyConfigPath(in *config.Path) *config.Path {
 	return out
 }
 
-func addPathElem(p *config.Path, e *container.Entry) *config.Path {
+func AddPathElem(p *config.Path, e *container.Entry) *config.Path {
 	elem := &config.PathElem{}
 	if e.Key == "" {
 		elem.Name = e.Name
@@ -336,7 +336,7 @@ func (r *Resource) GetInternalHierarchicalPaths() []*config.Path {
 		Elem: make([]*config.PathElem, 0),
 	}
 	// add root container entry to path elem
-	addPathElem(path, r.RootContainerEntry)
+	AddPathElem(path, r.RootContainerEntry)
 	// append the path to the paths list
 	paths = append(paths, path)
 
@@ -353,7 +353,7 @@ func addInternalHierarchicalPath(paths []*config.Path, origPath *config.Path, e 
 	// copy the old path to a new path
 	path := DeepCopyConfigPath(origPath)
 	// add container entry to path elem
-	addPathElem(path, e)
+	AddPathElem(path, e)
 	// append the path to the paths list
 	paths = append(paths, path)
 	for _, e := range e.Next.Entries {
