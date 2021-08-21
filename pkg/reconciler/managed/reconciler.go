@@ -842,7 +842,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		return reconcile.Result{RequeueAfter: r.pollInterval}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
-	if _, err := external.Update(externalCtx, managed); err != nil {
+	if _, err := external.Update(externalCtx, managed, observation); err != nil {
 		// We'll hit this condition if we can't update our external resource,
 		// for example if our provider credentials don't have access to update
 		// it. If this is the first time we encounter this issue we'll be

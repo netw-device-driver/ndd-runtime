@@ -65,7 +65,7 @@ type ExternalClient interface {
 	// Update the external resource represented by the supplied Managed
 	// resource, if necessary. Called unless Observe reports that the
 	// associated external resource is up to date.
-	Update(ctx context.Context, mg resource.Managed) (ExternalUpdate, error)
+	Update(ctx context.Context, mg resource.Managed, obs ExternalObservation) (ExternalUpdate, error)
 
 	// Delete the external resource upon deletion of its associated Managed
 	// resource. Called when the managed resource has been deleted.
@@ -154,7 +154,7 @@ func (c *NopClient) Create(ctx context.Context, mg resource.Managed) (ExternalCr
 }
 
 // Update does nothing. It returns an empty ExternalUpdate and no error.
-func (c *NopClient) Update(ctx context.Context, mg resource.Managed) (ExternalUpdate, error) {
+func (c *NopClient) Update(ctx context.Context, mg resource.Managed, obs ExternalObservation) (ExternalUpdate, error) {
 	return ExternalUpdate{}, nil
 }
 
@@ -188,9 +188,10 @@ type ExternalObservation struct {
 	// appears to be up-to-date - i.e. updating the external resource to match
 	// the desired state of the managed resource would be a no-op. Keep in mind
 	// that often only a subset of external resource fields can be updated.
-	// Crossplane uses this information to determine whether it needs to update
-	// the external resource.
 	ResourceUpToDate bool
+
+	ResourceDeletes []*config.Path
+	ResourceUpdates []*config.Update
 
 	// ResourceLateInitialized should be true if the managed resource's spec was
 	// updated during its observation. A Crossplane provider may update a
