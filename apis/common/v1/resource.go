@@ -23,7 +23,7 @@ import (
 
 // LabelKeyNetworkNodeName is added to NetworkNodeUsages to relate them to their
 // NetworkNode.
-const LabelKeyNetworkNodeName = "ndd.henderiw.be/networknode"
+const LabelKeyNetworkNodeName = "ndd.yndd.io/networknode"
 
 // A Reference to a named object.
 type Reference struct {

@@ -28,7 +28,7 @@ import (
 
 // AnnotationKeyExternalName is the key in the annotations map of a resource for
 // the name of the resource as it appears on provider's systems.
-const AnnotationKeyExternalName = "ndd.henderiw.be/external-name"
+const AnnotationKeyExternalName = "ndd.yndd.io/external-name"
 
 // TypedReferenceTo returns a typed object reference to the supplied object,
 // presumed to be of the supplied group, version, and kind.

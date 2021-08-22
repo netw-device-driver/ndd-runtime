@@ -35,7 +35,7 @@ import (
 )
 
 const (
-	finalizer = "in-use.ndd.henderiw.be"
+	finalizer = "in-use.ndd.yndd.io"
 	shortWait = 30 * time.Second
 	timeout   = 2 * time.Minute
 

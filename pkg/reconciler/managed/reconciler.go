@@ -39,7 +39,7 @@ import (
 
 const (
 	// timers
-	managedFinalizerName = "finalizer.managedresource.ndd.henderiw.be"
+	managedFinalizerName = "finalizer.managedresource.ndd.yndd.io"
 	reconcileGracePeriod = 30 * time.Second
 	reconcileTimeout     = 1 * time.Minute
 	shortWait            = 30 * time.Second
