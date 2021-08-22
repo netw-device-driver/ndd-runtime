@@ -791,6 +791,28 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 	log.Debug("Observation", "observation", observation)
 	if !observation.ResourceExists {
+		// if we go from an umnaged resource to a managed resource we can have dangling objects
+		// which we have to clean
+		if observation.ResourceHasData {
+			// TODO add logic for autopilot and non autopilot mode of operation
+
+			// if we are in auto-pilot mode we should align the data and delete the objects
+			// if they exist to align the resource with the intended data
+			if len(observation.ResourceDeletes) != 0 {
+				// remove the updates from the observation since they will get created
+				// when we create the resource
+				observation.ResourceUpdates = make([]*config.Update, 0)
+				if _, err := external.Update(externalCtx, managed, observation); err != nil {
+					// We'll hit this condition if we can't update our external resource
+					log.Debug("Cannot update external resource")
+					record.Event(managed, event.Warning(reasonCannotUpdate, err))
+					managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileUpdate)), nddv1.Unknown())
+					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+				}
+			}
+			// if we are not in auto-pilot mode we should creaate the object
+		}
+
 		if _, err := external.Create(externalCtx, managed); err != nil {
 			// We'll hit this condition if the grpc connection fails.
 			// If this is the first time we encounter this
@@ -813,24 +835,6 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
-	/*
-		if observation.ResourceLateInitialized {
-			// Note that this update may reset any pending updates to the status of
-			// the managed resource from when it was observed above. This is because
-			// the API server replies to the update with its unchanged view of the
-			// resource's status, which is subsequently deserialized into managed.
-			// This is usually tolerable because the update will implicitly requeue
-			// an immediate reconcile which should re-observe the external resource
-			// and persist its status.
-			if err := r.client.Update(ctx, managed); err != nil {
-				log.Debug(errUpdateManaged, "error", err)
-				record.Event(managed, event.Warning(reasonCannotUpdateManaged, err))
-				managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errUpdateManaged)), nddv1.Unknown())
-				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-			}
-		}
-	*/
-
 	if observation.ResourceUpToDate {
 		// We did not need to create, update, or delete our external resource.
 		// Per the below issue nothing will notify us if and when the external
@@ -844,10 +848,6 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 	if _, err := external.Update(externalCtx, managed, observation); err != nil {
 		// We'll hit this condition if we can't update our external resource,
-		// for example if our provider credentials don't have access to update
-		// it. If this is the first time we encounter this issue we'll be
-		// requeued implicitly when we update our status with the new error
-		// condition. If not, we requeue explicitly, which will trigger backoff.
 		log.Debug("Cannot update external resource")
 		record.Event(managed, event.Warning(reasonCannotUpdate, err))
 		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileUpdate)), nddv1.Unknown())

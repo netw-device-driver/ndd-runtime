@@ -178,58 +178,29 @@ func (c *NopClient) GetResourceName(ctx context.Context, path *config.Path) (str
 // resource.
 type ExternalObservation struct {
 	// ResourceExists must be true if a corresponding external resource exists
-	// for the managed resource. Typically this is proven by the presence of an
-	// external resource of the expected kind whose unique identifier matches
-	// the managed resource's external name. Crossplane uses this information to
-	// determine whether it needs to create or delete the external resource.
+	// for the managed resource. This is checked using the resourceKey in the
+	// device driver
 	ResourceExists bool
 
+	// ResourceHasData can be true when a managed resource is created, but the
+	// device had already data in that resource. The data needs to get aligned
+	// with the intended resource data
+	ResourceHasData bool
+
 	// ResourceUpToDate should be true if the corresponding external resource
-	// appears to be up-to-date - i.e. updating the external resource to match
-	// the desired state of the managed resource would be a no-op. Keep in mind
-	// that often only a subset of external resource fields can be updated.
+	// appears to be up-to-date 
 	ResourceUpToDate bool
+
 
 	ResourceDeletes []*config.Path
 	ResourceUpdates []*config.Update
-
-	// ResourceLateInitialized should be true if the managed resource's spec was
-	// updated during its observation. A Crossplane provider may update a
-	// managed resource's spec fields after it is created or updated, as long as
-	// the updates are limited to setting previously unset fields, and adding
-	// keys to maps. Crossplane uses this information to determine whether
-	// changes to the spec were made during observation that must be persisted.
-	// Note that changes to the spec will be persisted before changes to the
-	// status, and that pending changes to the status may be lost when the spec
-	// is persisted. Status changes will be persisted by the first subsequent
-	// observation that _does not_ late initialize the managed resource, so it
-	// is important that Observe implementations do not late initialize the
-	// resource every time they are called.
-	ResourceLateInitialized bool
-
-	// ConnectionDetails required to connect to this resource. These details
-	// are a set that is collated throughout the managed resource's lifecycle -
-	// i.e. returning new connection details will have no affect on old details
-	// unless an existing key is overwritten. Crossplane may publish these
-	// credentials to a store (e.g. a Secret).
-	//ConnectionDetails ConnectionDetails
 }
 
 // An ExternalCreation is the result of the creation of an external resource.
-type ExternalCreation struct {
-	// ExternalNameAssigned is true if the Create operation resulted in a change
-	// in the external name annotation. If that's the case, we need to issue a
-	// spec update and make sure it goes through so that we don't lose the identifier
-	// of the resource we just created.
-	ExternalNameAssigned bool
 
-	// ConnectionDetails required to connect to this resource. These details
-	// are a set that is collated throughout the managed resource's lifecycle -
-	// i.e. returning new connection details will have no affect on old details
-	// unless an existing key is overwritten. Crossplane may publish these
-	// credentials to a store (e.g. a Secret).
-	ConnectionDetails ConnectionDetails
+type ExternalCreation struct {
 }
+
 
 // An ExternalUpdate is the result of an update to an external resource.
 type ExternalUpdate struct {
