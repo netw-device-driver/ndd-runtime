@@ -329,11 +329,10 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
 			if err := r.managed.RemoveFinalizerString(ctx, emr, managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
-				log.Debug("Cannot add finalizer to external resource", "error", err, "external resource", externalResourceName)
+				log.Debug("Cannot remove finalizer to external resource", "error", err, "external resource", externalResourceName)
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
-
 		}
 
 		if err := r.managed.RemoveFinalizer(ctx, managed); err != nil {
@@ -352,43 +351,6 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		log.Debug("Successfully deleted managed resource")
 		return reconcile.Result{Requeue: false}, nil
 	}
-
-	/*
-		if err := r.managed.Initialize(ctx, managed); err != nil {
-			// If this is the first time we encounter this issue we'll be requeued
-			// implicitly when we update our status with the new error condition. If
-			// not, we requeue explicitly, which will trigger backoff.
-			log.Debug("Cannot initialize managed resource", "error", err)
-			record.Event(managed, event.Warning(reasonCannotInitialize, err))
-			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
-			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-		}
-	*/
-
-	// We resolve any references before observing our external resource because
-	// in some rare examples we need a spec field to make the observe call, and
-	// that spec field could be set by a reference.
-	//
-	// We do not resolve references when being deleted because it is likely that
-	// the resources we reference are also being deleted, and would thus block
-	// resolution due to being unready or non-existent. It is unlikely (but not
-	// impossible) that we need to resolve a reference in order to process a
-	// delete, and that reference is stale at delete time.
-	/*
-		if !meta.WasDeleted(managed) {
-			if err := r.managed.ResolveReferences(ctx, managed); err != nil {
-				// If any of our referenced resources are not yet ready (or if we
-				// encountered an error resolving them) we want to try again. If
-				// this is the first time we encounter this situation we'll be
-				// requeued implicitly due to the status update. If not, we want
-				// requeue explicitly, which will trigger backoff.
-				log.Debug("Cannot resolve managed resource references", "error", err)
-				record.Event(managed, event.Warning(reasonCannotResolveRefs, err))
-				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
-				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-			}
-		}
-	*/
 
 	external, err := r.external.Connect(externalCtx, managed)
 	if err != nil {
@@ -430,7 +392,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 				}
 				if err := r.managed.RemoveFinalizerString(ctx, emr, managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
-					log.Debug("Cannot add finalizer to external resource", "error", err, "external resource", externalResourceName)
+					log.Debug("Cannot remove finalizer to external resource", "error", err, "external resource", externalResourceName)
 					managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 				}
@@ -519,8 +481,9 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		}
 
 		// We'll only reach this point if deletion policy is not orphan, so we
-		// are safe to call external deletion if external resource exists.
-		if observation.ResourceExists {
+		// are safe to call external deletion if external resource exists or the 
+		// resource has data
+		if observation.ResourceExists || observation.ResourceHasData{
 			if err := external.Delete(externalCtx, managed); err != nil {
 				// We'll hit this condition if we can't delete our external
 				// resource, for example if our provider credentials don't have
