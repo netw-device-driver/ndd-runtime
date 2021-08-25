@@ -834,6 +834,31 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		managed.SetConditions(nddv1.ReconcileSuccess())
 		return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
+	// resource exists
+	if !observation.ResourceHasData {
+		// the resource got deleted, so we need to recreate the resource
+		if _, err := external.Create(externalCtx, managed); err != nil {
+			// We'll hit this condition if the grpc connection fails.
+			// If this is the first time we encounter this
+			// issue we'll be requeued implicitly when we update our status with
+			// the new error condition. If not, we requeue explicitly, which will trigger backoff.
+			log.Debug("Cannot create external resource", "error", err)
+			record.Event(managed, event.Warning(reasonCannotCreate, err))
+			managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileCreate)), nddv1.Unknown())
+			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		}
+		managed.SetConditions(nddv1.Creating())
+
+		// We've successfully created our external resource. In many cases the
+		// creation process takes a little time to finish. We requeue explicitly
+		// order to observe the external resource to determine whether it's
+		// ready for use.
+		log.Debug("Successfully requested creation of external resource")
+		record.Event(managed, event.Normal(reasonCreated, "Successfully requested creation of external resource"))
+		managed.SetConditions(nddv1.ReconcileSuccess())
+		return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+
+	}
 
 	if observation.ResourceUpToDate {
 		// We did not need to create, update, or delete our external resource.
