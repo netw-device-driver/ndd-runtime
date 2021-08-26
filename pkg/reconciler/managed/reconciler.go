@@ -695,7 +695,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 				externalResourceNames = append(externalResourceNames, externalResourceName)
 			}
 		} else {
-			log.Debug("this is an external leafref of an umanaged resource of ndd, deletion of the remote leafRef will fail")
+			log.Debug("this is an external leafref of an umanaged resource of ndd, deletion of the remote leafRef will fail", 
+				"path", r.parser.XpathToConfigGnmiPath(resolvedLeafRef.RemotePathString, 0))
 		}	
 	}
 /*
