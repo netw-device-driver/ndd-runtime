@@ -3,14 +3,13 @@ module github.com/netw-device-driver/ndd-runtime
 go 1.16
 
 require (
-	github.com/cloudflare/cfssl v1.6.0
 	github.com/go-logr/logr v0.4.0
 	github.com/netw-device-driver/ndd-grpc v0.1.32
 	github.com/openconfig/goyang v0.2.7
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.6.0
 	github.com/stoewer/go-strcase v1.2.0
-	github.com/yndd/ndd-yang v0.1.50
+	github.com/yndd/ndd-yang v0.1.51
 	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6
 	k8s.io/api v0.21.3
 	k8s.io/apimachinery v0.21.3
