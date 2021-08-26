@@ -670,69 +670,27 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	//log.Debug("External Leafref Validation", "resolved leafref", externalLeafrefObservation.ResolvedLeafRefs)
 	// get the external resources that match the external leafRefs
 	externalResourceNames := make([]string, 0)
-	for _, resolvedLeafRef := range externalLeafrefObservation.Details {
+	for _, resolvedLeafRef := range externalLeafrefObservation.ResolvedLeafRefs {
 		log.WithValues("resolvedLeafRef", resolvedLeafRef)
 
-		// get the resourceName from the device driver that matches the remotePath in the resolved LeafaRef
-		externalResourceName, err := external.GetResourceName(ctx, r.parser.XpathToConfigGnmiPath(resolvedLeafRef.RemotePathString, 0))
-		if err != nil {
-			log.Debug("Cannot get resource name", "error", err)
-			record.Event(managed, event.Warning(reasonCannotGetResourceName, err))
-			managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileGetResourceName)), nddv1.Unknown())
-			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-		}
-		log.Debug("External resource Name", "externalResourceName", externalResourceName)
-		// only append unique externalResourceName if the external resource is managed by the ndd provider
-		if externalResourceName != "" {
-			found := false
-			for _, extResName := range externalResourceNames {
-				// only append the externalResourceName for objects that are managed by the provider
-				if extResName == externalResourceName {
-					found = true
-				}
-			}
-			if !found {
-				externalResourceNames = append(externalResourceNames, externalResourceName)
-			}
-		} else {
-			log.Debug("this is an external leafref of an umanaged resource of ndd, deletion of the remote leafRef will fail", 
-				"path", r.parser.XpathToConfigGnmiPath(resolvedLeafRef.RemotePathString, 0))
-		}	
-	}
-/*
-	for _, resolvedLeafRef := range externalLeafrefObservation.Details {
-		for i := 0; i < len(strings.Split(resolvedLeafRef.Value, ".")); i++ {
-			var externalResourceName string
-			if i > 0 {
-				// this is a special case where the value is split in "." e.g. network-instance -> interface + subinterface
-				// or tunnel-interface + vxlan-interface
-				// we create a shorter path to resolve the hierarchical path
-				remotePath := &config.Path{
-					Elem: make([]*config.PathElem, 0),
-				}
-				remotePath.Elem = append(remotePath.Elem, resolvedLeafRef.RemotePath.GetElem()[0])
-				externalResourceName, err = external.GetResourceName(externalCtx, remotePath)
-				if err != nil {
-					log.Debug("Cannot get resource name", "error", err)
-					record.Event(managed, event.Warning(reasonCannotGetResourceName, err))
-					managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileGetResourceName)), nddv1.Unknown())
-					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-				}
-			} else {
-				externalResourceName, err = external.GetResourceName(externalCtx, resolvedLeafRef.RemotePath)
-				if err != nil {
-					log.Debug("Cannot get resource name", "error", err)
-					record.Event(managed, event.Warning(reasonCannotGetResourceName, err))
-					managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileGetResourceName)), nddv1.Unknown())
-					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-				}
-			}
+		// for some special cases it might be that the remotePaths or multiple iso 1.
+		// E.g. interface/subinterface or tunnel/vxlan-interface would be split in 2 paths
+		remotePaths := r.parser.GetRemotePathsFromResolvedLeafRef(resolvedLeafRef)
 
+		for _, remotePath := range remotePaths {
+			// get the resourceName from the device driver that matches the remotePath in the resolved LeafaRef
+			externalResourceName, err := external.GetResourceName(ctx, remotePath)
+			if err != nil {
+				log.Debug("Cannot get resource name", "error", err)
+				record.Event(managed, event.Warning(reasonCannotGetResourceName, err))
+				managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileGetResourceName)), nddv1.Unknown())
+				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+			}
+			log.Debug("External resource Name", "externalResourceName", externalResourceName, "remotePath", r.parser.ConfigGnmiPathToXPath(remotePath, true))
 			// only append unique externalResourceName if the external resource is managed by the ndd provider
 			if externalResourceName != "" {
 				found := false
 				for _, extResName := range externalResourceNames {
-
 					// only append the externalResourceName for objects that are managed by the provider
 					if extResName == externalResourceName {
 						found = true
@@ -742,14 +700,12 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 					externalResourceNames = append(externalResourceNames, externalResourceName)
 				}
 			} else {
-				log.Debug("this is an external leafref of an umanaged resource of ndd")
-				// delete entry from externalResourceNames since it will cause issues later on if we dont do it
-				// when we delete the resource e.g.
+				log.Debug("this is an external leafref of an umanaged resource of ndd, deletion of the remote leafRef will fail",
+					"path", r.parser.ConfigGnmiPathToXPath(resolvedLeafRef.RemotePath, true))
 			}
-
 		}
+
 	}
-*/
 
 	log.Debug("External Leafref Validation", "externalResourceNames", externalResourceNames)
 	for _, externalResourceName := range externalResourceNames {

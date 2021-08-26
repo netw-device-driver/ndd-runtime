@@ -67,22 +67,16 @@ type ValidateLocalleafRefObservation struct {
 	Success bool
 
 	ResolvedLeafRefs []*parser.ResolvedLeafRef
-
-	Details []*parser.ResultleafRefValidation
 }
 
 type ValidateExternalleafRefObservation struct {
 	Success bool
 
 	ResolvedLeafRefs []*parser.ResolvedLeafRef
-
-	Details []*parser.ResultleafRefValidation
 }
 
 type ValidationParentDependencyObservation struct {
 	Success bool
 
 	ResolvedLeafRefs []*parser.ResolvedLeafRef
-
-	Details []*parser.ResultleafRefValidation
 }
