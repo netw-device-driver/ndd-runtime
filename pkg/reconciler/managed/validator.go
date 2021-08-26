@@ -20,7 +20,7 @@ import (
 	"context"
 
 	"github.com/netw-device-driver/ndd-runtime/pkg/resource"
-	"github.com/netw-device-driver/ndd-runtime/pkg/yang/leafref"
+	"github.com/yndd/ndd-yang/pkg/parser"
 )
 
 type Validator interface {
@@ -66,23 +66,23 @@ func (e *NopValidator) ValidateParentDependency(ctx context.Context, mg resource
 type ValidateLocalleafRefObservation struct {
 	Success bool
 
-	ResolvedLeafRefs []*leafref.ResolvedLeafRef
+	ResolvedLeafRefs []*parser.ResolvedLeafRef
 
-	Details string
+	Details []*parser.ResultleafRefValidation
 }
 
 type ValidateExternalleafRefObservation struct {
 	Success bool
 
-	ResolvedLeafRefs []*leafref.ResolvedLeafRef
+	ResolvedLeafRefs []*parser.ResolvedLeafRef
 
-	Details string
+	Details []*parser.ResultleafRefValidation
 }
 
 type ValidationParentDependencyObservation struct {
 	Success bool
 
-	ResolvedLeafRefs []*leafref.ResolvedLeafRef
+	ResolvedLeafRefs []*parser.ResolvedLeafRef
 
-	Details string
+	Details []*parser.ResultleafRefValidation
 }

@@ -4,6 +4,5 @@
     "python.venvPath": ".venv",
     "go.gotoSymbol.includeImports": true,
     "go.toolsEnvVars": {
-        "GOPROXY": ""
     },
 }

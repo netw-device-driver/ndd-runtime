@@ -74,50 +74,7 @@ func NewResolvedLeafRefCopy(in *ResolvedLeafRef) (out *ResolvedLeafRef) {
 	return out
 }
 
-/*
-func (rlref *ResolvedLeafRef) DeepCopy() *ResolvedLeafRef {
-	if rlref == nil {
-		return nil
-	}
-	out := new(ResolvedLeafRef)
-	rlref.DeepCopyInto(out)
-	return out
-}
-*/
 
-/*
-func (rlref *ResolvedLeafRef) DeepCopyInto(out *ResolvedLeafRef){
-	*out = *rlref
-	if rlref.LocalPath != nil {
-		in, out := &rlref.LocalPath, &out.LocalPath
-		out = new(*config.Path)
-		*out.Elem = make([]*config.PathElem, len(in.GetElem()))
-		for _, v := range rlref.LocalPath.GetElem() {
-			elem := &config.PathElem{}
-			elem.Name = v.Name
-			if len(v.GetKey()) != 0 {
-				elem.Key = v.Key
-			}
-			out.LocalPath.Elem = append(out.LocalPath.Elem, elem)
-		}
-	}
-	if rlref.RemotePath != nil {
-		out.RemotePath = new(config.Path)
-		out.RemotePath.Elem = make([]*config.PathElem, 0)
-		for _, v := range rlref.RemotePath.GetElem() {
-			elem := &config.PathElem{
-				Name: v.Name,
-			}
-			if len(v.GetKey()) != 0 {
-				elem.Key = v.Key
-			}
-			out.RemotePath.Elem = append(out.RemotePath.Elem, elem)
-		}
-	}
-	out.Resolved = rlref.Resolved
-	out.Value = rlref.Value
-}
-*/
 
 func NewLeafReaf(lPath, rPath *config.Path) *LeafRef {
 	return &LeafRef{
@@ -214,7 +171,7 @@ func (l *LeafRef) ResolveLeafRefWithJSONObject(x1 interface{}, idx int, lridx in
 				}
 			}
 		}
-		//we will use the geenric return here
+		//we will use the generic return here
 	case nil:
 		// When we come here we have no resolution
 	}
