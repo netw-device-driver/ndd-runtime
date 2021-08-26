@@ -23,6 +23,7 @@ import (
 	"time"
 
 	nddv1 "github.com/netw-device-driver/ndd-runtime/apis/common/v1"
+	"github.com/yndd/ndd-yang/pkg/parser"
 
 	config "github.com/netw-device-driver/ndd-grpc/config/configpb"
 	"github.com/netw-device-driver/ndd-runtime/pkg/event"
@@ -105,6 +106,7 @@ type Reconciler struct {
 
 	pollInterval time.Duration
 	timeout      time.Duration
+	parser       parser.Parser
 
 	// The below structs embed the set of interfaces used to implement the
 	// managed resource reconciler. We do this primarily for readability, so
@@ -227,6 +229,12 @@ func WithRecorder(er event.Recorder) ReconcilerOption {
 	}
 }
 
+func WithParser(l logging.Logger) ReconcilerOption {
+	return func(r *Reconciler) {
+		r.parser = *parser.NewParser(parser.WithLogger(l))
+	}
+}
+
 // NewReconciler returns a Reconciler that reconciles managed resources of the
 // supplied ManagedKind with resources in an external network device.
 // It panics if asked to reconcile a managed resource kind that is
@@ -286,7 +294,6 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	log = log.WithValues(
 		"uid", managed.GetUID(),
 		"version", managed.GetResourceVersion(),
-		"external-name", meta.GetExternalName(managed),
 	)
 
 	// If managed resource has a deletion timestamp and and a deletion policy of
@@ -481,9 +488,9 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		}
 
 		// We'll only reach this point if deletion policy is not orphan, so we
-		// are safe to call external deletion if external resource exists or the 
+		// are safe to call external deletion if external resource exists or the
 		// resource has data
-		if observation.ResourceExists || observation.ResourceHasData{
+		if observation.ResourceExists || observation.ResourceHasData {
 			if err := external.Delete(externalCtx, managed); err != nil {
 				// We'll hit this condition if we can't delete our external
 				// resource, for example if our provider credentials don't have
@@ -660,10 +667,39 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
+	//log.Debug("External Leafref Validation", "resolved leafref", externalLeafrefObservation.ResolvedLeafRefs)
 	// get the external resources that match the external leafRefs
 	externalResourceNames := make([]string, 0)
-	log.Debug("External Leafref Validation", "resolved leafref", externalLeafrefObservation.ResolvedLeafRefs)
-	for _, resolvedLeafRef := range externalLeafrefObservation.ResolvedLeafRefs {
+	for _, resolvedLeafRef := range externalLeafrefObservation.Details {
+		log.WithValues("resolvedLeafRef", resolvedLeafRef)
+
+		// get the resourceName from the device driver that matches the remotePath in the resolved LeafaRef
+		externalResourceName, err := external.GetResourceName(ctx, r.parser.XpathToConfigGnmiPath(resolvedLeafRef.RemotePathString, 0))
+		if err != nil {
+			log.Debug("Cannot get resource name", "error", err)
+			record.Event(managed, event.Warning(reasonCannotGetResourceName, err))
+			managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileGetResourceName)), nddv1.Unknown())
+			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		}
+		log.Debug("External resource Name", "externalResourceName", externalResourceName)
+		// only append unique externalResourceName if the external resource is managed by the ndd provider
+		if externalResourceName != "" {
+			found := false
+			for _, extResName := range externalResourceNames {
+				// only append the externalResourceName for objects that are managed by the provider
+				if extResName == externalResourceName {
+					found = true
+				}
+			}
+			if !found {
+				externalResourceNames = append(externalResourceNames, externalResourceName)
+			}
+		} else {
+			log.Debug("this is an external leafref of an umanaged resource of ndd, deletion of the remote leafRef will fail")
+		}	
+	}
+/*
+	for _, resolvedLeafRef := range externalLeafrefObservation.Details {
 		for i := 0; i < len(strings.Split(resolvedLeafRef.Value, ".")); i++ {
 			var externalResourceName string
 			if i > 0 {
@@ -712,6 +748,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 		}
 	}
+*/
 
 	log.Debug("External Leafref Validation", "externalResourceNames", externalResourceNames)
 	for _, externalResourceName := range externalResourceNames {
