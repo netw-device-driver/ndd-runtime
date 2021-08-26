@@ -318,7 +318,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		}
 
 		// remove the finalizer from the external resources before deleting the finalizer from the local resource
-		for _, externalResourceName := range managed.GetCondition(nddv1.ConditionKindExternalLeafRef).ExternalResourceNames {
+		for _, externalResourceName := range managed.GetExternalLeafRefs() {
 			split := strings.Split(externalResourceName, ".")
 			emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
 			if err != nil {
@@ -381,7 +381,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			}
 
 			// remove the finalizer from the external resources before deleting the finalizer from the local resource
-			for _, externalResourceName := range managed.GetCondition(nddv1.ConditionKindExternalLeafRef).ExternalResourceNames {
+			for _, externalResourceName := range managed.GetExternalLeafRefs() {
 				split := strings.Split(externalResourceName, ".")
 				emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
 				if err != nil {
@@ -480,7 +480,6 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
-
 		// if other finalizer exists we cananot delete the resource and we have to requeue until the
 		// resource get deleted
 		if hasOtherFinalizer {
@@ -518,7 +517,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		}
 
 		// remove the finalizer from the external resources before deleting the finalizer from the local resource
-		for _, externalResourceName := range managed.GetCondition(nddv1.ConditionKindExternalLeafRef).ExternalResourceNames {
+		for _, externalResourceName := range managed.GetExternalLeafRefs() {
 			split := strings.Split(externalResourceName, ".")
 			emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
 			if err != nil {
@@ -735,7 +734,35 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	}
 	log.Debug("External Leafref Validation", "externalResourceNames", externalResourceNames)
 
-	managed.SetConditions(nddv1.ExternalLeafRefValidationSuccess().WithExternalResourceNames(externalResourceNames))
+	managed.SetConditions(nddv1.ExternalLeafRefValidationSuccess())
+	// we need to check the delta between the existing External LeafRefs and the new LeaRefs
+	// if there is a deletion we need remove the external finalizer of the object
+	externalResourceNamesDeletes := FindExternalResourceNameDelta(managed.GetExternalLeafRefs(), externalResourceNames)
+	for _, externalResourceName := range externalResourceNamesDeletes {
+		split := strings.Split(externalResourceName, ".")
+		emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
+		if err != nil {
+			log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
+			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		}
+		key := types.NamespacedName{
+			Namespace: managed.GetNamespace(),
+			Name:      split[len(split)-1],
+		}
+		if err := r.client.Get(ctx, key, emr); err != nil {
+			log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
+			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		}
+		if err := r.managed.RemoveFinalizerString(ctx, emr, managed.GetObjectKind().GroupVersionKind().Kind+"."+managed.GetName()); err != nil {
+			log.Debug("Cannot remove finalizer to external resource", "error", err, "external resource", externalResourceName)
+			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		}
+	}
+	// Update the External LeafRefs in the Status field
+	managed.SetExternalLeafRefs(externalResourceNames)
 
 	if err := r.managed.AddFinalizer(ctx, managed); err != nil {
 		// If this is the first time we encounter this issue we'll be requeued
@@ -844,4 +871,23 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	record.Event(managed, event.Normal(reasonUpdated, "Successfully requested update of external resource"))
 	managed.SetConditions(nddv1.ReconcileSuccess(), nddv1.Updating())
 	return reconcile.Result{RequeueAfter: veryShortWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+}
+
+func FindExternalResourceNameDelta(oldSlice, newSlice []string) []string {
+	// we run over the old Slice and see if all the elements exists 
+	//in the new Slice if not we need to add the element to the slice
+	returnSlice := make([]string, 0)
+	for _, oldName := range oldSlice {
+		found := false
+		for _, newName := range newSlice {
+			if oldName == newName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			returnSlice = append(returnSlice, oldName)
+		}
+	}
+	return returnSlice
 }

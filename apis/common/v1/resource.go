@@ -95,6 +95,7 @@ type ResourceSpec struct {
 type ResourceStatus struct {
 	ConditionedStatus `json:",inline"`
 	Target            []string `json:"target,omitempty"`
+	ExternalLeafRefs  []string `json:"externalLeafRefs,omitempty"`
 }
 
 // A NetworkNodeStatus defines the observed status of a NetworkNode.

@@ -88,12 +88,6 @@ type Condition struct {
 	// one status to another, if any.
 	// +optional
 	Message string `json:"message,omitempty"`
-
-	// A Resolved leafref
-	//ResolvedLeafRefs []*leafref.ResolvedLeafRef `json:"resolvedLeafRefs,omitempty"`
-
-	// ExternalResourceNames for external leafrefs
-	ExternalResourceNames []string `json:"externalResourceNames,omitempty"`
 }
 
 // Equal returns true if the condition is identical to the supplied condition,
@@ -109,20 +103,6 @@ func (c Condition) Equal(other Condition) bool {
 // condition.
 func (c Condition) WithMessage(msg string) Condition {
 	c.Message = msg
-	return c
-}
-
-// WithResolvedLeafRefs returns a condition by adding the provided resolvedLeafRefs
-// to an existing condition.
-//func (c Condition) WithResolvedLeafRefs(r []*leafref.ResolvedLeafRef) Condition {
-//	c.ResolvedLeafRefs = r
-//	return c
-//}
-
-// WithResolvedLeafRefs returns a condition by adding the provided resolvedLeafRefs
-// to an existing condition.
-func (c Condition) WithExternalResourceNames(r []string) Condition {
-	c.ExternalResourceNames = r
 	return c
 }
 

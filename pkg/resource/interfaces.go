@@ -33,6 +33,11 @@ type Conditioned interface {
 	GetCondition(ck nddv1.ConditionKind) nddv1.Condition
 }
 
+type ExternalLeafRefs interface {
+	SetExternalLeafRefs(externalResourceNames []string)
+	GetExternalLeafRefs() []string
+}
+
 // A Target may have targets
 type Target interface {
 	SetTarget(target []string)
@@ -93,6 +98,7 @@ type Managed interface {
 
 	Conditioned
 	Target
+	ExternalLeafRefs
 }
 
 // A ManagedList is a list of managed resources.
