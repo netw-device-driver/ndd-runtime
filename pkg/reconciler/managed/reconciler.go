@@ -789,11 +789,10 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			record.Event(managed, event.Warning(reasonCannotUpdate, err))
 			managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileUpdate)), nddv1.Unknown())
 			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
-		}
-
-		// update the resourceIndexes, so we can compare the new data in the next reconcile
-		managed.SetResourceIndexes(resourceIndexesObservation.ResourceIndexes)
+		}		
 	}
+	// update the resourceIndexes, so we can compare the new data in the next reconcile
+	managed.SetResourceIndexes(resourceIndexesObservation.ResourceIndexes)
 
 	if err := r.managed.AddFinalizer(ctx, managed); err != nil {
 		// If this is the first time we encounter this issue we'll be requeued
