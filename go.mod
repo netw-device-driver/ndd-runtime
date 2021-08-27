@@ -9,7 +9,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.6.0
 	github.com/stoewer/go-strcase v1.2.0
-	github.com/yndd/ndd-yang v0.1.51
+	github.com/yndd/ndd-yang v0.1.53
 	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6
 	k8s.io/api v0.21.3
 	k8s.io/apimachinery v0.21.3

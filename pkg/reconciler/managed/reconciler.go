@@ -62,6 +62,7 @@ const (
 	errReconcileValidateLocalLeafRef     = "validation local leafref failed"
 	errReconcileValidateExternalLeafRef  = "validation externaal leafref failed"
 	errReconcileValidateParentDependency = "validation parent dependency failed"
+	errReconcileValidateResourceIndexes  = "Validation resource indexes failed"
 	errUpdateManagedStatus               = "cannot update status of the managed resource"
 
 	// Event reasons.
@@ -84,6 +85,8 @@ const (
 	reasonValidateLocalLeafRefFailed     event.Reason = "ValidateLocalLeafRefFailed"
 	reasonValidateExternalLeafRefFailed  event.Reason = "ValidateExternalLeafRefFailed"
 	reasonValidateParentDependencyFailed event.Reason = "ValidateParentDependencyFailed"
+	reasonCannotValidateResourceIndexes  event.Reason = "CannotValidateResourceIndexes"
+	
 
 	reasonDeleted event.Reason = "DeletedExternalResource"
 	reasonCreated event.Reason = "CreatedExternalResource"
@@ -764,6 +767,31 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	// Update the External LeafRefs in the Status field
 	managed.SetExternalLeafRefs(externalResourceNames)
 
+	// Validate if the resourceIndexes changed or not
+	// if they changed we should delete the original resource
+	resourceIndexesObservation, err := r.validator.ValidateResourceIndexes(ctx, managed)
+	if err != nil {
+		log.Debug("Cannot validate resource indexes", "error", err)
+		record.Event(managed, event.Warning(reasonCannotValidateResourceIndexes, err))
+		managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileValidateResourceIndexes)), nddv1.Unknown())
+		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+	}
+	// if the resource indexes got deleted we need to delete the resources
+	if len(resourceIndexesObservation.ResourceDeletes) != 0 {
+		// we reuse the observation object
+		observation := ExternalObservation{
+			ResourceDeletes: resourceIndexesObservation.ResourceDeletes,
+			ResourceUpdates: make([]*config.Update, 0), //
+		}
+		if _, err := external.Update(externalCtx, managed, observation); err != nil {
+			// We'll hit this condition if we can't update our external resource,
+			log.Debug("Cannot update external resource")
+			record.Event(managed, event.Warning(reasonCannotUpdate, err))
+			managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileUpdate)), nddv1.Unknown())
+			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		}
+	}
+
 	if err := r.managed.AddFinalizer(ctx, managed); err != nil {
 		// If this is the first time we encounter this issue we'll be requeued
 		// implicitly when we update our status with the new error condition. If
@@ -772,6 +800,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
+
 
 	log.Debug("Observation", "observation", observation)
 	if !observation.ResourceExists {
@@ -794,7 +823,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 				}
 			}
-			// if we are not in auto-pilot mode we should creaate the object
+			// if we are not in auto-pilot mode we should create the object
 		}
 
 		if _, err := external.Create(externalCtx, managed); err != nil {

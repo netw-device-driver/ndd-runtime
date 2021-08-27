@@ -19,6 +19,7 @@ package managed
 import (
 	"context"
 
+	config "github.com/netw-device-driver/ndd-grpc/config/configpb"
 	"github.com/netw-device-driver/ndd-runtime/pkg/resource"
 	"github.com/yndd/ndd-yang/pkg/parser"
 )
@@ -28,13 +29,16 @@ type Validator interface {
 
 	ValidateExternalleafRef(ctx context.Context, mg resource.Managed, cfg []byte) (ValidateExternalleafRefObservation, error)
 
-	ValidateParentDependency(ctx context.Context, mg resource.Managed, cfg []byte) (ValidationParentDependencyObservation, error)
+	ValidateParentDependency(ctx context.Context, mg resource.Managed, cfg []byte) (ValidateParentDependencyObservation, error)
+
+	ValidateResourceIndexes(ctx context.Context, mg resource.Managed) (ValidateResourceIndexesObservation, error)
 }
 
 type ValidatorFn struct {
 	ValidateLocalleafRefFn     func(ctx context.Context, mg resource.Managed) (ValidateLocalleafRefObservation, error)
 	ValidateExternalleafRefFn  func(ctx context.Context, mg resource.Managed, cfg []byte) (ValidateExternalleafRefObservation, error)
-	ValidateParentDependencyFn func(ctx context.Context, mg resource.Managed, cfg []byte) (ValidationParentDependencyObservation, error)
+	ValidateParentDependencyFn func(ctx context.Context, mg resource.Managed, cfg []byte) (ValidateParentDependencyObservation, error)
+	ValidateResourceIndexesFn  func(ctx context.Context, mg resource.Managed) (ValidateResourceIndexesObservation, error)
 }
 
 func (e ValidatorFn) ValidateLocalleafRef(ctx context.Context, mg resource.Managed) (ValidateLocalleafRefObservation, error) {
@@ -45,8 +49,12 @@ func (e ValidatorFn) ValidateExternalleafRef(ctx context.Context, mg resource.Ma
 	return e.ValidateExternalleafRefFn(ctx, mg, cfg)
 }
 
-func (e ValidatorFn) ValidateParentDependency(ctx context.Context, mg resource.Managed, cfg []byte) (ValidationParentDependencyObservation, error) {
+func (e ValidatorFn) ValidateParentDependency(ctx context.Context, mg resource.Managed, cfg []byte) (ValidateParentDependencyObservation, error) {
 	return e.ValidateParentDependencyFn(ctx, mg, cfg)
+}
+
+func (e ValidatorFn) ValidateResourceIndexes(ctx context.Context, mg resource.Managed) (ValidateResourceIndexesObservation, error) {
+	return e.ValidateResourceIndexesFn(ctx, mg)
 }
 
 type NopValidator struct{}
@@ -59,8 +67,12 @@ func (e *NopValidator) ValidateExternalleafRef(ctx context.Context, mg resource.
 	return ValidateExternalleafRefObservation{}, nil
 }
 
-func (e *NopValidator) ValidateParentDependency(ctx context.Context, mg resource.Managed, cfg []byte) (ValidationParentDependencyObservation, error) {
-	return ValidationParentDependencyObservation{}, nil
+func (e *NopValidator) ValidateParentDependency(ctx context.Context, mg resource.Managed, cfg []byte) (ValidateParentDependencyObservation, error) {
+	return ValidateParentDependencyObservation{}, nil
+}
+
+func (e *NopValidator) ValidateResourceIndexes(ctx context.Context, mg resource.Managed) (ValidateResourceIndexesObservation, error) {
+	return ValidateResourceIndexesObservation{}, nil
 }
 
 type ValidateLocalleafRefObservation struct {
@@ -75,8 +87,12 @@ type ValidateExternalleafRefObservation struct {
 	ResolvedLeafRefs []*parser.ResolvedLeafRef
 }
 
-type ValidationParentDependencyObservation struct {
+type ValidateParentDependencyObservation struct {
 	Success bool
 
 	ResolvedLeafRefs []*parser.ResolvedLeafRef
+}
+
+type ValidateResourceIndexesObservation struct {
+	ResourceDeletes []*config.Path
 }

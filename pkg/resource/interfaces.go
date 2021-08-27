@@ -33,6 +33,11 @@ type Conditioned interface {
 	GetCondition(ck nddv1.ConditionKind) nddv1.Condition
 }
 
+type UsedResourceIndexes interface {
+	SetResourceIndexes(externalResourceNames []string)
+	GetResourceIndexes() map[string]string
+}
+
 type ExternalLeafRefs interface {
 	SetExternalLeafRefs(externalResourceNames []string)
 	GetExternalLeafRefs() []string

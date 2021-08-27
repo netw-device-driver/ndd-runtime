@@ -423,8 +423,8 @@ github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijb
 github.com/wI2L/jsondiff v0.1.0 h1:j8KVhKey+qbyBy3VL8l3ZrxE907DTVTXcV/BvEeQAeM=
 github.com/wI2L/jsondiff v0.1.0/go.mod h1:KGXeexPwd48QqbM0XI+cuQDiZXI4n2Ceqs/5z+7WE4s=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
-github.com/yndd/ndd-yang v0.1.51 h1:RHBgOjfmP/Bqhp2UqnuLu7vuCGpsn+kFvK5IAUU2sm8=
-github.com/yndd/ndd-yang v0.1.51/go.mod h1:GT/8efIchBH1sQ6J64AM1FZDXXIaWeirkYUpbmDPlHI=
+github.com/yndd/ndd-yang v0.1.53 h1:hH9hvk/9Q46LxNaMFQkXGyPTHYm8FJOCrobq2OIckPM=
+github.com/yndd/ndd-yang v0.1.53/go.mod h1:GT/8efIchBH1sQ6J64AM1FZDXXIaWeirkYUpbmDPlHI=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
