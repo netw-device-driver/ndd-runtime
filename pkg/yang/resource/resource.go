@@ -323,7 +323,7 @@ func AddPathElem(p *config.Path, e *container.Entry) *config.Path {
 		elem.Name = e.GetName()
 	} else {
 		elem.Name = e.GetName()
-		elem.Key = map[string]string{e.GetKey(): ""}
+		elem.Key = map[string]string{strings.Split(e.GetKey(), " ")[0]: ""}
 	}
 	p.Elem = append(p.Elem, elem)
 	return p
