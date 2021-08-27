@@ -777,11 +777,11 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 	// if the resource indexes got deleted we need to delete the resources
-	if len(resourceIndexesObservation.ResourceDeletes) != 0 {
+	if resourceIndexesObservation.Changed {
 		// we reuse the observation object
 		observation := ExternalObservation{
 			ResourceDeletes: resourceIndexesObservation.ResourceDeletes,
-			ResourceUpdates: make([]*config.Update, 0), //
+			ResourceUpdates: make([]*config.Update, 0), // no updates are necessary here
 		}
 		if _, err := external.Update(externalCtx, managed, observation); err != nil {
 			// We'll hit this condition if we can't update our external resource,
@@ -790,6 +790,9 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileUpdate)), nddv1.Unknown())
 			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 		}
+
+		// update the resourceIndexes, so we can compare the new data in the next reconcile
+		managed.SetResourceIndexes(resourceIndexesObservation.ResourceIndexes)
 	}
 
 	if err := r.managed.AddFinalizer(ctx, managed); err != nil {

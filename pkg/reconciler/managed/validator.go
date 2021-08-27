@@ -94,5 +94,7 @@ type ValidateParentDependencyObservation struct {
 }
 
 type ValidateResourceIndexesObservation struct {
+	Changed         bool
 	ResourceDeletes []*config.Path
+	ResourceIndexes map[string]string
 }
