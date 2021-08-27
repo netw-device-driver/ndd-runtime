@@ -34,7 +34,7 @@ type Conditioned interface {
 }
 
 type ResourceIndexes interface {
-	SetResourceIndexes(externalResourceNames []string)
+	SetResourceIndexes(resourceIndexes map[string]string)
 	GetResourceIndexes() map[string]string
 }
 
