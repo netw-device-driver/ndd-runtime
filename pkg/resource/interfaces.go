@@ -33,7 +33,7 @@ type Conditioned interface {
 	GetCondition(ck nddv1.ConditionKind) nddv1.Condition
 }
 
-type UsedResourceIndexes interface {
+type ResourceIndexes interface {
 	SetResourceIndexes(externalResourceNames []string)
 	GetResourceIndexes() map[string]string
 }
@@ -104,6 +104,7 @@ type Managed interface {
 	Conditioned
 	Target
 	ExternalLeafRefs
+	ResourceIndexes
 }
 
 // A ManagedList is a list of managed resources.
