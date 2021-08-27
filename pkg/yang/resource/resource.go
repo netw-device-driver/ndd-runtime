@@ -319,10 +319,11 @@ func DeepCopyConfigPath(in *config.Path) *config.Path {
 func AddPathElem(p *config.Path, e *container.Entry) *config.Path {
 	elem := &config.PathElem{}
 	if e.Key == "" {
-		elem.Name = e.Name
+
+		elem.Name = e.GetName()
 	} else {
-		elem.Name = e.Name
-		elem.Key = map[string]string{e.Key: ""}
+		elem.Name = e.GetName()
+		elem.Key = map[string]string{e.GetKey(): ""}
 	}
 	p.Elem = append(p.Elem, elem)
 	return p
