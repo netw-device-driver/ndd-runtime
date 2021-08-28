@@ -322,24 +322,25 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 		// remove the finalizer from the external resources before deleting the finalizer from the local resource
 		for _, externalResourceName := range managed.GetExternalLeafRefs() {
-			gvk, err := gvk.String2GVK(externalResourceName)
+			gvkObject, err := gvk.String2GVK(externalResourceName)
 			if err != nil {
-				log.Debug("Cannot get gvk", "error", err, "externalResourceName", gvk)
+				log.Debug("Cannot get gvk", "error", err, "externalResourceName", gvkObject)
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
 			//split := strings.Split(externalResourceName, ".")
 			//emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
-			log.Debug("GVK info", "Kind", gvk.GetKind(), "Name", gvk.GetName(), "Namespace", gvk.GetNameSpace())
-			emr, err := r.resolver.GetManagedResource(ctx, gvk.GetKind())
+			log.Debug("gvkObject", "gvkObject", gvkObject)
+			log.Debug("GVK info", "Kind", gvkObject.GetKind(), "Name", gvkObject.GetName(), "Namespace", gvkObject.GetNameSpace())
+			emr, err := r.resolver.GetManagedResource(ctx, gvkObject.GetKind())
 			if err != nil {
-				log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", gvk)
+				log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", gvkObject)
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
 			key := types.NamespacedName{
 				Namespace: managed.GetNamespace(),
-				Name:      gvk.GetName(),
+				Name:      gvkObject.GetName(),
 				//Name:      split[len(split)-1],
 			}
 			if err := r.client.Get(ctx, key, emr); err != nil {
@@ -394,24 +395,25 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 			// remove the finalizer from the external resources before deleting the finalizer from the local resource
 			for _, externalResourceName := range managed.GetExternalLeafRefs() {
-				gvk, err := gvk.String2GVK(externalResourceName)
+				gvkObject, err := gvk.String2GVK(externalResourceName)
 				if err != nil {
-					log.Debug("Cannot get gvk", "error", err, "externalResourceName", gvk)
+					log.Debug("Cannot get gvk", "error", err, "externalResourceName", gvkObject)
 					managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 				}
 				//split := strings.Split(externalResourceName, ".")
 				//emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
-				log.Debug("GVK info", "Kind", gvk.GetKind(), "Name", gvk.GetName(), "Namespace", gvk.GetNameSpace())
-				emr, err := r.resolver.GetManagedResource(ctx, gvk.GetKind())
+				log.Debug("gvkObject", "gvkObject", gvkObject)
+				log.Debug("GVK info", "Kind", gvkObject.GetKind(), "Name", gvkObject.GetName(), "Namespace", gvkObject.GetNameSpace())
+				emr, err := r.resolver.GetManagedResource(ctx, gvkObject.GetKind())
 				if err != nil {
-					log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", gvk)
+					log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", gvkObject)
 					managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 					return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 				}
 				key := types.NamespacedName{
 					Namespace: managed.GetNamespace(),
-					Name:      gvk.GetName(),
+					Name:      gvkObject.GetName(),
 					//Name:      split[len(split)-1],
 				}
 				if err := r.client.Get(ctx, key, emr); err != nil {
@@ -539,25 +541,26 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 		// remove the finalizer from the external resources before deleting the finalizer from the local resource
 		for _, externalResourceName := range managed.GetExternalLeafRefs() {
-			gvk, err := gvk.String2GVK(externalResourceName)
+			gvkObject, err := gvk.String2GVK(externalResourceName)
 			if err != nil {
-				log.Debug("Cannot get gvk", "error", err, "externalResourceName", gvk)
+				log.Debug("Cannot get gvk", "error", err, "externalResourceName", gvkObject)
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
 			//split := strings.Split(externalResourceName, ".")
 			//emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
-			log.Debug("GVK info", "Kind", gvk.GetKind(), "Name", gvk.GetName(), "Namespace", gvk.GetNameSpace())
-			emr, err := r.resolver.GetManagedResource(ctx, gvk.GetKind())
+			log.Debug("gvkObject", "gvkObject", gvkObject)
+			log.Debug("GVK info", "Kind", gvkObject.GetKind(), "Name", gvkObject.GetName(), "Namespace", gvkObject.GetNameSpace())
+			emr, err := r.resolver.GetManagedResource(ctx, gvkObject.GetKind())
 			if err != nil {
-				log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", gvk)
+				log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", gvkObject)
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
-			
+
 			key := types.NamespacedName{
 				Namespace: managed.GetNamespace(),
-				Name:      gvk.GetName(),
+				Name:      gvkObject.GetName(),
 				//Name:      split[len(split)-1],
 			}
 			if err := r.client.Get(ctx, key, emr); err != nil {
@@ -739,8 +742,17 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 	log.Debug("External Leafref Validation", "externalResourceNames", externalResourceNames)
 	for _, externalResourceName := range externalResourceNames {
-		split := strings.Split(externalResourceName, ".")
-		emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
+		gvkObject, err := gvk.String2GVK(externalResourceName)
+		if err != nil {
+			log.Debug("Cannot get gvk", "error", err, "externalResourceName", gvkObject)
+			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		}
+		//split := strings.Split(externalResourceName, ".")
+		//emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
+		log.Debug("gvkObject", "gvkObject", gvkObject)
+		log.Debug("GVK info", "Kind", gvkObject.GetKind(), "Name", gvkObject.GetName(), "Namespace", gvkObject.GetNameSpace())
+		emr, err := r.resolver.GetManagedResource(ctx, gvkObject.GetKind())
 		if err != nil {
 			log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
 			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
@@ -748,7 +760,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		}
 		key := types.NamespacedName{
 			Namespace: managed.GetNamespace(),
-			Name:      split[len(split)-1],
+			Name:      gvkObject.GetName(),
+			//Name:      split[len(split)-1],
 		}
 		if err := r.client.Get(ctx, key, emr); err != nil {
 			log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
@@ -770,8 +783,17 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	// if there is a deletion we need remove the external finalizer of the object
 	externalResourceNamesDeletes := FindExternalResourceNameDelta(managed.GetExternalLeafRefs(), externalResourceNames)
 	for _, externalResourceName := range externalResourceNamesDeletes {
-		split := strings.Split(externalResourceName, ".")
-		emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
+		gvkObject, err := gvk.String2GVK(externalResourceName)
+		if err != nil {
+			log.Debug("Cannot get gvk", "error", err, "externalResourceName", gvkObject)
+			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
+			return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		}
+		//split := strings.Split(externalResourceName, ".")
+		//emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
+		log.Debug("gvkObject", "gvkObject", gvkObject)
+		log.Debug("GVK info", "Kind", gvkObject.GetKind(), "Name", gvkObject.GetName(), "Namespace", gvkObject.GetNameSpace())
+		emr, err := r.resolver.GetManagedResource(ctx, gvkObject.GetKind())
 		if err != nil {
 			log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", externalResourceName)
 			managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
@@ -779,7 +801,8 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		}
 		key := types.NamespacedName{
 			Namespace: managed.GetNamespace(),
-			Name:      split[len(split)-1],
+			Name:      gvkObject.GetName(),
+			//Name:      split[len(split)-1],
 		}
 		if err := r.client.Get(ctx, key, emr); err != nil {
 			log.Debug("Cannot get external resource", "error", err, "external resource", externalResourceName)
