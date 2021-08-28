@@ -87,6 +87,7 @@ func (gvk *GVK) SetNameSpace(s string) {
 
 func String2GVK(s string) (*GVK, error) {
 	var gvk GVK
+	fmt.Printf("String2GVK: %s\n", s)
 	if err := json.Unmarshal([]byte(s), &gvk); err != nil {
 		return nil, errors.Wrap(err, errJSONUnMarshal)
 	}
