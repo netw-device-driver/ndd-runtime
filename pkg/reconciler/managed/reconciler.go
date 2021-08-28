@@ -125,6 +125,7 @@ type Reconciler struct {
 	record event.Recorder
 }
 
+/*
 type mrResolver struct {
 	Resolver
 }
@@ -134,6 +135,7 @@ func defaultMRResolver() mrResolver {
 		Resolver: &NopResolver{},
 	}
 }
+*/
 
 type mrValidator struct {
 	Validator
