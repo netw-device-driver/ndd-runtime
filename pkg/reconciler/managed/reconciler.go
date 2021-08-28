@@ -330,6 +330,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			}
 			//split := strings.Split(externalResourceName, ".")
 			//emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
+			log.Debug("GVK info", "Kind", gvk.GetKind(), "Name", gvk.GetName(), "Namespace", gvk.GetNameSpace())
 			emr, err := r.resolver.GetManagedResource(ctx, gvk.GetKind())
 			if err != nil {
 				log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", gvk)
@@ -401,6 +402,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 				}
 				//split := strings.Split(externalResourceName, ".")
 				//emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
+				log.Debug("GVK info", "Kind", gvk.GetKind(), "Name", gvk.GetName(), "Namespace", gvk.GetNameSpace())
 				emr, err := r.resolver.GetManagedResource(ctx, gvk.GetKind())
 				if err != nil {
 					log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", gvk)
@@ -545,12 +547,14 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			}
 			//split := strings.Split(externalResourceName, ".")
 			//emr, err := r.resolver.GetManagedResource(ctx, split[len(split)-2])
+			log.Debug("GVK info", "Kind", gvk.GetKind(), "Name", gvk.GetName(), "Namespace", gvk.GetNameSpace())
 			emr, err := r.resolver.GetManagedResource(ctx, gvk.GetKind())
 			if err != nil {
 				log.Debug("Cannot get external leafref external resource", "error", err, "externalResourceName", gvk)
 				managed.SetConditions(nddv1.ReconcileError(err), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
+			
 			key := types.NamespacedName{
 				Namespace: managed.GetNamespace(),
 				Name:      gvk.GetName(),
