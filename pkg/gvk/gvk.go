@@ -18,6 +18,7 @@ package gvk
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/pkg/errors"
 )
@@ -85,9 +86,10 @@ func (gvk *GVK) SetNameSpace(s string) {
 }
 
 func String2GVK(s string) (*GVK, error) {
-	var gvk *GVK
+	var gvk GVK
 	if err := json.Unmarshal([]byte(s), &gvk); err != nil {
 		return nil, errors.Wrap(err, errJSONUnMarshal)
 	}
-	return gvk, nil
+	fmt.Printf("GVK: %v\n", gvk)
+	return &gvk, nil
 }
