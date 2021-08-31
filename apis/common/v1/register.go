@@ -27,31 +27,25 @@ var RegisterPath = &gnmi.Path{
 var RegisterPathElemName = "ndd-registration"
 var RegisterPathElemKey = "name"
 
-// Registrations defines the Registrations the device driver subscribes to for config change notifications
+// RegistrationParameters defines the Registrations the device driver subscribes to for config change notifications
 type Register struct {
-	DeviceType    DeviceType `json:"deviceType,omitempty"`
-	DeviceMatch   string     `json:"deviceMatch,omitempty"`
-	Subscriptions []string   `json:"subscriptions,omitempty"`
-}
+	// Registrations defines the Registrations the device driver subscribes to for config change notifications
+	// +optional
+	Subscriptions []string `json:"subscriptions,omitempty"`
 
-func (r *Register) GetDeviceType() DeviceType {
-	return r.DeviceType
-}
+	// ExceptionPaths defines the exception paths that should be ignored during change notifications
+	// if the xpath contains the exception path it is considered a match
+	// +optional
+	ExceptionPaths []string `json:"exceptionPaths,omitempty"`
 
-func (r *Register) GetDeviceMatch() string {
-	return r.DeviceMatch
+	// ExplicitExceptionPaths defines the exception paths that should be ignored during change notifications
+	// the match should be exact to condider this xpath
+	// +optional
+	ExplicitExceptionPaths []string `json:"explicitExceptionPaths,omitempty"`
 }
 
 func (r *Register) GetSubscriptions() []string {
 	return r.Subscriptions
-}
-
-func (r *Register) SetDeviceType(s DeviceType) {
-	r.DeviceType = s
-}
-
-func (r *Register) SetDeviceMatch(s string) {
-	r.DeviceMatch = s
 }
 
 func (r *Register) SetSubscriptions(s []string) {
