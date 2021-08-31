@@ -6,6 +6,7 @@ require (
 	github.com/go-logr/logr v0.4.0
 	github.com/karimra/gnmic v0.18.0
 	github.com/netw-device-driver/ndd-grpc v0.1.32
+	github.com/openconfig/gnmi v0.0.0-20210707145734-c69a5df04b53
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.6.0
 	github.com/yndd/ndd-yang v0.1.53

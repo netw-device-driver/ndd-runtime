@@ -16,7 +16,16 @@ limitations under the License.
 
 package v1
 
-var RegisterPath = "ndd-registration"
+import "github.com/openconfig/gnmi/proto/gnmi"
+
+var RegisterPath = &gnmi.Path{
+	Elem: []*gnmi.PathElem{
+		{Name: RegisterPathElemName, Key: map[string]string{RegisterPathElemKey: ""}},
+	},
+}
+
+var RegisterPathElemName = "ndd-registration"
+var RegisterPathElemKey = "name"
 
 // Registrations defines the Registrations the device driver subscribes to for config change notifications
 type Register struct {
