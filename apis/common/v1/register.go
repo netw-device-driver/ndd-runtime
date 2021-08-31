@@ -29,6 +29,10 @@ var RegisterPathElemKey = "name"
 
 // RegistrationParameters defines the Registrations the device driver subscribes to for config change notifications
 type Register struct {
+	// MatchString defines the string to match the devices for discovery
+	// +optional
+	MatchString string `json:"matchString,omitempty"`
+	
 	// Registrations defines the Registrations the device driver subscribes to for config change notifications
 	// +optional
 	Subscriptions []string `json:"subscriptions,omitempty"`
