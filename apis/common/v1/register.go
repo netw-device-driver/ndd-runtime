@@ -16,6 +16,8 @@ limitations under the License.
 
 package v1
 
+var RegisterPath = "ndd-registration"
+
 // Registrations defines the Registrations the device driver subscribes to for config change notifications
 type Register struct {
 	DeviceType    DeviceType `json:"deviceType,omitempty"`
