@@ -16,14 +16,20 @@ limitations under the License.
 
 package v1
 
-import "github.com/netw-device-driver/ndd-grpc/ndd"
+import (
+	"github.com/karimra/gnmic/target"
+	"github.com/karimra/gnmic/types"
+	"github.com/netw-device-driver/ndd-grpc/ndd"
+)
 
 type Target struct {
-	Name string
-	Cfg  ndd.Config
+	Name   string
+	Cfg    ndd.Config // this is the config client code
+	Config *types.TargetConfig // this is gnmi based
+	Target *target.Target // this is gnmi based
 }
 
-func (t * Target) IsTargetDeleted(ns []string) bool {
+func (t *Target) IsTargetDeleted(ns []string) bool {
 	for _, an := range ns {
 		if an == t.Name {
 			return false
