@@ -120,3 +120,7 @@ type NetworkNodeUsage struct {
 	// ResourceReference to the managed resource using the network node config.
 	ResourceReference TypedReference `json:"resourceRef"`
 }
+
+type ResourceName struct {
+	Name string `json:"name,omitempty"`
+}
