@@ -16,12 +16,7 @@ limitations under the License.
 
 package managed
 
-import (
-	"context"
-
-	"github.com/netw-device-driver/ndd-runtime/pkg/resource"
-)
-
+/*
 // A Resolver resolves references to other managed resources.
 type Resolver interface {
 	GetManagedResource(ctx context.Context, resourceName string) (resource.Managed, error)
@@ -42,3 +37,4 @@ type NopResolver struct{}
 func (e *NopResolver) GetManagedResource(ctx context.Context, resourceName string) (resource.Managed, error) {
 	return nil, nil
 }
+*/
