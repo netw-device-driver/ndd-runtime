@@ -19,8 +19,8 @@ package managed
 import (
 	"context"
 
-	config "github.com/netw-device-driver/ndd-grpc/config/configpb"
 	"github.com/netw-device-driver/ndd-runtime/pkg/resource"
+	"github.com/openconfig/gnmi/proto/gnmi"
 )
 
 // ConnectionDetails created or updated during an operation on an external
@@ -78,7 +78,7 @@ type ExternalClient interface {
 	GetConfig(ctx context.Context) ([]byte, error)
 
 	// GetResourceName returns the resource that matches the path
-	GetResourceName(ctx context.Context, path *config.Path) (string, error)
+	GetResourceName(ctx context.Context, path *gnmi.Path) (string, error)
 }
 
 // ExternalClientFns are a series of functions that satisfy the ExternalClient
@@ -90,7 +90,7 @@ type ExternalClientFns struct {
 	DeleteFn          func(ctx context.Context, mg resource.Managed) error
 	GetTargetFn       func() []string
 	GetConfigFn       func(ctx context.Context) ([]byte, error)
-	GetResourceNameFn func(ctx context.Context, path *config.Path) (string, error)
+	GetResourceNameFn func(ctx context.Context, path *gnmi.Path) (string, error)
 }
 
 // Observe the external resource the supplied Managed resource represents, if
@@ -128,7 +128,7 @@ func (e ExternalClientFns) GetConfig(ctx context.Context) ([]byte, error) {
 }
 
 // GetResourceName returns the resource matching the path
-func (e ExternalClientFns) GetResourceName(ctx context.Context, path *config.Path) (string, error) {
+func (e ExternalClientFns) GetResourceName(ctx context.Context, path *gnmi.Path) (string, error) {
 	return e.GetResourceNameFn(ctx, path)
 }
 
@@ -170,7 +170,7 @@ func (c *NopClient) GetConfig(ctx context.Context) ([]byte, error) {
 }
 
 // GetResourceName returns the resource matching the path
-func (c *NopClient) GetResourceName(ctx context.Context, path *config.Path) (string, error) {
+func (c *NopClient) GetResourceName(ctx context.Context, path *gnmi.Path) (string, error) {
 	return "", nil
 }
 
@@ -188,19 +188,17 @@ type ExternalObservation struct {
 	ResourceHasData bool
 
 	// ResourceUpToDate should be true if the corresponding external resource
-	// appears to be up-to-date 
+	// appears to be up-to-date
 	ResourceUpToDate bool
 
-
-	ResourceDeletes []*config.Path
-	ResourceUpdates []*config.Update
+	ResourceDeletes []*gnmi.Path
+	ResourceUpdates []*gnmi.Update
 }
 
 // An ExternalCreation is the result of the creation of an external resource.
 
 type ExternalCreation struct {
 }
-
 
 // An ExternalUpdate is the result of an update to an external resource.
 type ExternalUpdate struct {

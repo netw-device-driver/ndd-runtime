@@ -34,6 +34,7 @@ const (
 	GEXTActionGet             GEXTAction = "get"
 	GEXTActionDelete          GEXTAction = "delete"
 	GEXTActionCreate          GEXTAction = "create"
+	GEXTActionUpdate          GEXTAction = "Update"
 	GEXTActionGetResourceName GEXTAction = "getresourcename"
 )
 

@@ -19,8 +19,8 @@ package managed
 import (
 	"context"
 
-	config "github.com/netw-device-driver/ndd-grpc/config/configpb"
 	"github.com/netw-device-driver/ndd-runtime/pkg/resource"
+	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/yndd/ndd-yang/pkg/parser"
 )
 
@@ -78,23 +78,23 @@ func (e *NopValidator) ValidateResourceIndexes(ctx context.Context, mg resource.
 type ValidateLocalleafRefObservation struct {
 	Success bool
 
-	ResolvedLeafRefs []*parser.ResolvedLeafRef
+	ResolvedLeafRefs []*parser.ResolvedLeafRefGnmi
 }
 
 type ValidateExternalleafRefObservation struct {
 	Success bool
 
-	ResolvedLeafRefs []*parser.ResolvedLeafRef
+	ResolvedLeafRefs []*parser.ResolvedLeafRefGnmi
 }
 
 type ValidateParentDependencyObservation struct {
 	Success bool
 
-	ResolvedLeafRefs []*parser.ResolvedLeafRef
+	ResolvedLeafRefs []*parser.ResolvedLeafRefGnmi
 }
 
 type ValidateResourceIndexesObservation struct {
 	Changed         bool
-	ResourceDeletes []*config.Path
+	ResourceDeletes []*gnmi.Path
 	ResourceIndexes map[string]string
 }

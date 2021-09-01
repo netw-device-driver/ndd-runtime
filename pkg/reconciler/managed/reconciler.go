@@ -23,9 +23,9 @@ import (
 	"time"
 
 	nddv1 "github.com/netw-device-driver/ndd-runtime/apis/common/v1"
+	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/yndd/ndd-yang/pkg/parser"
 
-	config "github.com/netw-device-driver/ndd-grpc/config/configpb"
 	"github.com/netw-device-driver/ndd-runtime/pkg/event"
 	"github.com/netw-device-driver/ndd-runtime/pkg/gvk"
 	"github.com/netw-device-driver/ndd-runtime/pkg/logging"
@@ -734,7 +734,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 		// for some special cases it might be that the remotePaths or multiple iso 1.
 		// E.g. interface/subinterface or tunnel/vxlan-interface would be split in 2 paths
-		remotePaths := r.parser.GetRemotePathsFromResolvedLeafRef(resolvedLeafRef)
+		remotePaths := r.parser.GetRemoteGnmiPathsFromResolvedLeafRef(resolvedLeafRef)
 
 		for _, remotePath := range remotePaths {
 			// get the resourceName from the device driver that matches the remotePath in the resolved LeafaRef
@@ -745,7 +745,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 				managed.SetConditions(nddv1.ReconcileError(errors.Wrap(err, errReconcileGetResourceName)), nddv1.Unknown())
 				return reconcile.Result{Requeue: true}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 			}
-			log.Debug("External resource Name", "externalResourceName", externalResourceName, "remotePath", r.parser.ConfigGnmiPathToXPath(remotePath, true))
+			log.Debug("External resource Name", "externalResourceName", externalResourceName, "remotePath", r.parser.GnmiPathToXPath(remotePath, true))
 			// only append unique externalResourceName if the external resource is managed by the ndd provider
 			if externalResourceName != "" {
 				found := false
@@ -760,7 +760,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 				}
 			} else {
 				log.Debug("this is an external leafref of an umanaged resource of ndd, deletion of the remote leafRef will fail",
-					"path", r.parser.ConfigGnmiPathToXPath(resolvedLeafRef.RemotePath, true))
+					"path", r.parser.GnmiPathToXPath(resolvedLeafRef.RemotePath, true))
 			}
 		}
 
@@ -871,7 +871,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		// we reuse the observation object
 		observation := ExternalObservation{
 			ResourceDeletes: resourceIndexesObservation.ResourceDeletes,
-			ResourceUpdates: make([]*config.Update, 0), // no updates are necessary here
+			ResourceUpdates: make([]*gnmi.Update, 0), // no updates are necessary here
 		}
 		if _, err := external.Update(externalCtx, managed, observation); err != nil {
 			// We'll hit this condition if we can't update our external resource,
@@ -905,7 +905,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 			if len(observation.ResourceDeletes) != 0 {
 				// remove the updates from the observation since they will get created
 				// when we create the resource
-				observation.ResourceUpdates = make([]*config.Update, 0)
+				observation.ResourceUpdates = make([]*gnmi.Update, 0)
 				if _, err := external.Update(externalCtx, managed, observation); err != nil {
 					// We'll hit this condition if we can't update our external resource
 					log.Debug("Cannot update external resource")
