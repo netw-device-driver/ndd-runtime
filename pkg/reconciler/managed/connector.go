@@ -78,7 +78,7 @@ type ExternalClient interface {
 	GetConfig(ctx context.Context) ([]byte, error)
 
 	// GetResourceName returns the resource that matches the path
-	GetResourceName(ctx context.Context, path *gnmi.Path) (string, error)
+	GetResourceName(ctx context.Context, path []*gnmi.Path) (string, error)
 }
 
 // ExternalClientFns are a series of functions that satisfy the ExternalClient
@@ -90,7 +90,7 @@ type ExternalClientFns struct {
 	DeleteFn          func(ctx context.Context, mg resource.Managed) error
 	GetTargetFn       func() []string
 	GetConfigFn       func(ctx context.Context) ([]byte, error)
-	GetResourceNameFn func(ctx context.Context, path *gnmi.Path) (string, error)
+	GetResourceNameFn func(ctx context.Context, path []*gnmi.Path) (string, error)
 }
 
 // Observe the external resource the supplied Managed resource represents, if
@@ -128,7 +128,7 @@ func (e ExternalClientFns) GetConfig(ctx context.Context) ([]byte, error) {
 }
 
 // GetResourceName returns the resource matching the path
-func (e ExternalClientFns) GetResourceName(ctx context.Context, path *gnmi.Path) (string, error) {
+func (e ExternalClientFns) GetResourceName(ctx context.Context, path []*gnmi.Path) (string, error) {
 	return e.GetResourceNameFn(ctx, path)
 }
 
@@ -170,7 +170,7 @@ func (c *NopClient) GetConfig(ctx context.Context) ([]byte, error) {
 }
 
 // GetResourceName returns the resource matching the path
-func (c *NopClient) GetResourceName(ctx context.Context, path *gnmi.Path) (string, error) {
+func (c *NopClient) GetResourceName(ctx context.Context, path []*gnmi.Path) (string, error) {
 	return "", nil
 }
 

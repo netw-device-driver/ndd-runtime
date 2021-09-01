@@ -738,7 +738,9 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 
 		for _, remotePath := range remotePaths {
 			// get the resourceName from the device driver that matches the remotePath in the resolved LeafaRef
-			externalResourceName, err := external.GetResourceName(ctx, remotePath)
+			remoteGnmiPath := make([]*gnmi.Path, 0)
+			remoteGnmiPath = append(remoteGnmiPath, remotePath)
+			externalResourceName, err := external.GetResourceName(ctx, remoteGnmiPath)
 			if err != nil {
 				log.Debug("Cannot get resource name", "error", err)
 				record.Event(managed, event.Warning(reasonCannotGetResourceName, err))
