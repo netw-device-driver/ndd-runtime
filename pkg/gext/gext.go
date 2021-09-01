@@ -84,12 +84,13 @@ func (c *ResourceStatus) String() string {
 // GEXT identifies an extension to GNMI to indicate the Actions and Parameters
 // of a  managed resource
 type GEXT struct {
-	Action  GEXTAction     `json:"action,omitempty"`
-	Name    string         `json:"name,omitempty"`
-	Level   int            `json:"level,omitempty"`
-	Status  ResourceStatus `json:"status,omitempty"`
-	Exists  bool           `json:"exists,omitempty"`
-	HasData bool           `json:"hasData,omitempty"`
+	Action     GEXTAction     `json:"action,omitempty"`
+	Name       string         `json:"name,omitempty"`
+	Level      int            `json:"level,omitempty"`
+	Status     ResourceStatus `json:"status,omitempty"`
+	Exists     bool           `json:"exists,omitempty"`
+	HasData    bool           `json:"hasData,omitempty"`
+	CacheReady bool           `json:"cacheReady,omitempty"`
 }
 
 func (gext *GEXT) String() (string, error) {
@@ -124,6 +125,10 @@ func (gext *GEXT) GetHasData() bool {
 	return gext.HasData
 }
 
+func (gext *GEXT) GetCacheReady() bool {
+	return gext.CacheReady
+}
+
 func (gext *GEXT) SetAction(s GEXTAction) {
 	gext.Action = s
 }
@@ -146,6 +151,10 @@ func (gext *GEXT) SetExists(s bool) {
 
 func (gext *GEXT) SetHasData(s bool) {
 	gext.HasData = s
+}
+
+func (gext *GEXT) SetCacheReady(s bool) {
+	gext.CacheReady = s
 }
 
 func String2GEXT(s string) (*GEXT, error) {

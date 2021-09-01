@@ -177,6 +177,9 @@ func (c *NopClient) GetResourceName(ctx context.Context, path []*gnmi.Path) (str
 // An ExternalObservation is the result of an observation of an external
 // resource.
 type ExternalObservation struct {
+	// indicated if the cache is ready or not, during cache startup this can occur
+	// when the cache is still initializing
+	Ready bool
 	// ResourceExists must be true if a corresponding external resource exists
 	// for the managed resource. This is checked using the resourceKey in the
 	// device driver

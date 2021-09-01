@@ -618,6 +618,11 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 		log.Debug("Successfully deleted managed resource")
 		return reconcile.Result{Requeue: false}, nil
 	}
+	if !observation.Ready {
+		// When the cache is initializing we should not reconcile, so it is better to wait a reconciliation loop before retrying
+		log.Debug("External resource cache is not ready", "requeue-after", time.Now().Add(r.pollInterval))
+		return reconcile.Result{RequeueAfter: r.pollInterval}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+	}
 
 	// get the full configuration of the network node in order to do leafref and parent validation
 	cfg, err := external.GetConfig(externalCtx)
