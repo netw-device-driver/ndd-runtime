@@ -46,6 +46,7 @@ const (
 	reconcileGracePeriod = 30 * time.Second
 	reconcileTimeout     = 1 * time.Minute
 	shortWait            = 30 * time.Second
+	mediumWait           = 15 * time.Second
 	veryShortWait        = 5 * time.Second
 	longWait             = 1 * time.Minute
 
@@ -622,7 +623,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	if !observation.Ready {
 		// When the cache is initializing we should not reconcile, so it is better to wait a reconciliation loop before retrying
 		log.Debug("External resource cache is not ready", "requeue-after", time.Now().Add(r.pollInterval))
-		return reconcile.Result{RequeueAfter: r.pollInterval}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
+		return reconcile.Result{RequeueAfter: mediumWait}, errors.Wrap(r.client.Status().Update(ctx, managed), errUpdateManagedStatus)
 	}
 
 	// get the full configuration of the network node in order to do leafref and parent validation
