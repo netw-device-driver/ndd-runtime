@@ -496,6 +496,7 @@ func (r *Reconciler) Reconcile(_ context.Context, req reconcile.Request) (reconc
 	managed.SetTarget(external.GetTarget())
 
 	observation, err := external.Observe(externalCtx, managed)
+	log.Debug("Observation", "Observation", observation)
 	if err != nil {
 		// We'll usually hit this case if our Provider credentials are invalid
 		// or insufficient for observing the external resource type we're
