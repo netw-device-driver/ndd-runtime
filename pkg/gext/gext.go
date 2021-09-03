@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/pkg/errors"
 )
 
@@ -87,6 +88,7 @@ type GEXT struct {
 	Action     GEXTAction     `json:"action,omitempty"`
 	Name       string         `json:"name,omitempty"`
 	Level      int            `json:"level,omitempty"`
+	RootPath   *gnmi.Path     `json:"rootPath,omitempty"`
 	Status     ResourceStatus `json:"status,omitempty"`
 	Exists     bool           `json:"exists,omitempty"`
 	HasData    bool           `json:"hasData,omitempty"`
@@ -129,6 +131,10 @@ func (gext *GEXT) GetCacheReady() bool {
 	return gext.CacheReady
 }
 
+func (gext *GEXT) GetRootPath() *gnmi.Path {
+	return gext.RootPath
+}
+
 func (gext *GEXT) SetAction(s GEXTAction) {
 	gext.Action = s
 }
@@ -155,6 +161,10 @@ func (gext *GEXT) SetHasData(s bool) {
 
 func (gext *GEXT) SetCacheReady(s bool) {
 	gext.CacheReady = s
+}
+
+func (gext *GEXT) SetRootPath(s *gnmi.Path) {
+	gext.RootPath = s
 }
 
 func String2GEXT(s string) (*GEXT, error) {
